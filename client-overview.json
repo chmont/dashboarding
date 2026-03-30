@@ -1059,42 +1059,22 @@
                         "color": "dark-red",
                         "index": 0,
                         "text": "Sev0"
-                      }
-                    },
-                    "type": "value"
-                  },
-                  {
-                    "options": {
+                      },
                       "Sev1": {
                         "color": "red",
                         "index": 1,
                         "text": "Sev1"
-                      }
-                    },
-                    "type": "value"
-                  },
-                  {
-                    "options": {
+                      },
                       "Sev2": {
                         "color": "orange",
                         "index": 2,
                         "text": "Sev2"
-                      }
-                    },
-                    "type": "value"
-                  },
-                  {
-                    "options": {
+                      },
                       "Sev3": {
                         "color": "#EAB839",
                         "index": 3,
                         "text": "Sev3"
-                      }
-                    },
-                    "type": "value"
-                  },
-                  {
-                    "options": {
+                      },
                       "Sev4": {
                         "color": "blue",
                         "index": 4,
@@ -1125,6 +1105,104 @@
                 "value": 180
               }
             ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "TargetResourceType"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 369
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "AlertScope"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 218
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Resource"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 369
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Reason"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 611
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "SeverityLabel"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "options": {
+                      "Critical": {
+                        "color": "dark-red",
+                        "index": 0,
+                        "text": "Critical"
+                      },
+                      "Error": {
+                        "color": "red",
+                        "index": 1,
+                        "text": "Error"
+                      },
+                      "Info": {
+                        "color": "yellow",
+                        "index": 3,
+                        "text": "Info"
+                      },
+                      "Verbose": {
+                        "color": "blue",
+                        "index": 4,
+                        "text": "Verbose"
+                      },
+                      "Warning": {
+                        "color": "orange",
+                        "index": 2,
+                        "text": "Warning"
+                      }
+                    },
+                    "type": "value"
+                  }
+                ]
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "mode": "basic",
+                  "type": "color-background"
+                }
+              }
+            ]
           }
         ]
       },
@@ -1140,8 +1218,8 @@
         "showHeader": true,
         "sortBy": [
           {
-            "desc": true,
-            "displayName": "StartTime"
+            "desc": false,
+            "displayName": "Severity"
           }
         ]
       },
@@ -1153,7 +1231,7 @@
             "timeGrain": "auto"
           },
           "azureResourceGraph": {
-            "query": "AlertsManagementResources\r\n| where subscriptionId in~ (${sub:singlequote})\r\n| where properties.essentials.monitorCondition =~ \"Fired\"\r\n| project\r\n    Severity = tostring(properties.essentials.severity),\r\n    AlertName = tostring(properties.essentials.alertRule),\r\n    Resource = tostring(properties.essentials.targetResourceName),\r\n    ResourceGroup = tostring(properties.essentials.targetResourceGroup),\r\n    SignalType = tostring(properties.essentials.signalType),\r\n    StartTime = todatetime(properties.essentials.startDateTime)\r\n| order by StartTime desc",
+            "query": "AlertsManagementResources\r\n| where subscriptionId in~ (${sub:singlequote})\r\n| where properties.essentials.monitorCondition =~ \"Fired\"\r\n| where tostring(properties.essentials.severity) in (\"Sev0\",\"Sev1\",\"Sev2\",\"Sev3\",\"Sev4\")\r\n| extend Severity = tostring(properties.essentials.severity)\r\n| extend SeverityLabel = case(\r\n    Severity == \"Sev0\", \"Critical\",\r\n    Severity == \"Sev1\", \"Error\",\r\n    Severity == \"Sev2\", \"Warning\",\r\n    Severity == \"Sev3\", \"Info\",\r\n    Severity == \"Sev4\", \"Verbose\",\r\n    Severity\r\n)\r\n| extend\r\n    MonitorService = tostring(properties.essentials.monitorService),\r\n    TargetResourceType = tostring(properties.essentials.targetResourceType),\r\n    TargetResourceName = tostring(properties.essentials.targetResourceName)\r\n| extend AlertScope = case(\r\n    tolower(TargetResourceType) contains \"virtualmachines\", \"Virtual Machine\",\r\n    tolower(MonitorService) contains \"servicehealth\", \"Service Health\",\r\n    tolower(TargetResourceType) contains \"subscriptions\", \"Subscription\",\r\n    isempty(TargetResourceType) and tolower(MonitorService) contains \"servicehealth\", \"Service Health\",\r\n    \"Other\"\r\n)\r\n| project\r\n    SeverityLabel,\r\n    Severity,\r\n    AlertScope,\r\n    Resource = TargetResourceName,\r\n    Reason = tostring(properties.essentials.description),\r\n    ResourceGroup = tostring(properties.essentials.targetResourceGroup),\r\n    MonitorCondition = tostring(properties.essentials.monitorCondition),\r\n    SignalType = tostring(properties.essentials.signalType),\r\n    MonitorService,\r\n    TargetResourceType,\r\n    StartTime = todatetime(properties.essentials.startDateTime),\r\n    LastModified = todatetime(properties.essentials.lastModifiedDateTime)\r\n| order by StartTime desc",
             "scope": "directory"
           },
           "datasource": {
@@ -2150,7 +2228,7 @@
       "id": 42,
       "options": {
         "colorMode": "value",
-        "graphMode": "area",
+        "graphMode": "none",
         "justifyMode": "center",
         "orientation": "horizontal",
         "percentChangeColorMode": "standard",
@@ -3210,7 +3288,7 @@
           "uid": "${ds}"
         },
         "definition": "",
-        "includeAll": true,
+        "includeAll": false,
         "label": "Subscription",
         "name": "sub",
         "options": [],
@@ -3231,8 +3309,8 @@
       {
         "allowCustomValue": false,
         "current": {
-          "text": "amg-prod",
-          "value": "amg-prod"
+          "text": "All",
+          "value": "$__all"
         },
         "datasource": {
           "type": "grafana-azure-monitor-datasource",
@@ -3240,7 +3318,7 @@
         },
         "definition": "",
         "hide": 2,
-        "includeAll": false,
+        "includeAll": true,
         "label": "Resource Group(s)",
         "name": "rg",
         "options": [],
@@ -3298,5 +3376,5 @@
   "timezone": "",
   "title": "Client Overview",
   "uid": "ceb2996a-59a7-4e3c-9d1b-64a85a324c32",
-  "version": 6
+  "version": 23
 }
