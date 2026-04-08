@@ -1,0 +1,676 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "description": "Client environment overview — infrastructure health, alerts, VM performance, and monitoring coverage at a glance.",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": 162,
+  "links": [],
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "panels": [],
+      "title": "Client Context",
+      "type": "row"
+    },
+    {
+      "gridPos": {
+        "h": 7,
+        "w": 8,
+        "x": 0,
+        "y": 1
+      },
+      "id": 2,
+      "libraryPanel": {
+        "name": "",
+        "uid": "bfht73w5ukphcd"
+      },
+      "title": "",
+      "type": "library-panel-ref"
+    },
+    {
+      "gridPos": {
+        "h": 3,
+        "w": 4,
+        "x": 8,
+        "y": 1
+      },
+      "id": 7,
+      "libraryPanel": {
+        "name": "Machines Reporting",
+        "uid": "efht75ghmnapse"
+      },
+      "title": "Machines Reporting",
+      "type": "library-panel-ref"
+    },
+    {
+      "gridPos": {
+        "h": 3,
+        "w": 4,
+        "x": 12,
+        "y": 1
+      },
+      "id": 8,
+      "libraryPanel": {
+        "name": "Heartbeat Freshness",
+        "uid": "afht76peywikgd"
+      },
+      "title": "Heartbeat Freshness",
+      "type": "library-panel-ref"
+    },
+    {
+      "gridPos": {
+        "h": 3,
+        "w": 4,
+        "x": 16,
+        "y": 1
+      },
+      "id": 72,
+      "libraryPanel": {
+        "name": "Total VMs",
+        "uid": "cfht77axaxddsc"
+      },
+      "title": "Total VMs",
+      "type": "library-panel-ref"
+    },
+    {
+      "gridPos": {
+        "h": 3,
+        "w": 4,
+        "x": 20,
+        "y": 1
+      },
+      "id": 73,
+      "libraryPanel": {
+        "name": "VMs Not Reporting",
+        "uid": "ffht799uddhq8d"
+      },
+      "title": "VMs Not Reporting",
+      "type": "library-panel-ref"
+    },
+    {
+      "gridPos": {
+        "h": 6,
+        "w": 16,
+        "x": 8,
+        "y": 4
+      },
+      "id": 74,
+      "libraryPanel": {
+        "name": "VM Inventory & Power State",
+        "uid": "efht7ioppz7y8d"
+      },
+      "title": "VM Inventory & Power State",
+      "type": "library-panel-ref"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 10
+      },
+      "id": 20,
+      "panels": [],
+      "title": "Health Summary",
+      "type": "row"
+    },
+    {
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 0,
+        "y": 11
+      },
+      "id": 21,
+      "libraryPanel": {
+        "name": "Critical Alerts",
+        "uid": "afht7l7wkay9sf"
+      },
+      "title": "Critical Alerts",
+      "type": "library-panel-ref"
+    },
+    {
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 6,
+        "y": 11
+      },
+      "id": 22,
+      "libraryPanel": {
+        "name": "Warning Alerts",
+        "uid": "efht7lrlyytj4f"
+      },
+      "title": "Warning Alerts",
+      "type": "library-panel-ref"
+    },
+    {
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 12,
+        "y": 11
+      },
+      "id": 75,
+      "libraryPanel": {
+        "name": "Oldest Open Alert",
+        "uid": "bfht7m8bniby8b"
+      },
+      "title": "Oldest Open Alert",
+      "type": "library-panel-ref"
+    },
+    {
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 18,
+        "y": 11
+      },
+      "id": 24,
+      "libraryPanel": {
+        "name": "Alerts Resolved",
+        "uid": "ffht7mpzbo3r4c"
+      },
+      "title": "Alerts Resolved",
+      "type": "library-panel-ref"
+    },
+    {
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 15
+      },
+      "id": 25,
+      "libraryPanel": {
+        "name": "Active Alerts Table",
+        "uid": "afht7sk00txq8c"
+      },
+      "title": "Active Alerts Table",
+      "type": "library-panel-ref"
+    },
+    {
+      "gridPos": {
+        "h": 7,
+        "w": 24,
+        "x": 0,
+        "y": 23
+      },
+      "id": 76,
+      "libraryPanel": {
+        "name": "Recently Resolved Alerts-table",
+        "uid": "dfht7tiynebcwf"
+      },
+      "title": "Recently Resolved Alerts",
+      "type": "library-panel-ref"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 30
+      },
+      "id": 30,
+      "panels": [],
+      "title": "Infrastructure Overview",
+      "type": "row"
+    },
+    {
+      "gridPos": {
+        "h": 10,
+        "w": 6,
+        "x": 0,
+        "y": 31
+      },
+      "id": 31,
+      "libraryPanel": {
+        "name": "CPU %",
+        "uid": "dfht7wm1p3ytcf"
+      },
+      "title": "CPU %",
+      "type": "library-panel-ref"
+    },
+    {
+      "gridPos": {
+        "h": 10,
+        "w": 6,
+        "x": 6,
+        "y": 31
+      },
+      "id": 32,
+      "libraryPanel": {
+        "name": "Memory %",
+        "uid": "dfht7x6puuz9cc"
+      },
+      "title": "Memory %",
+      "type": "library-panel-ref"
+    },
+    {
+      "gridPos": {
+        "h": 10,
+        "w": 6,
+        "x": 12,
+        "y": 31
+      },
+      "id": 33,
+      "libraryPanel": {
+        "name": "Disk Used %",
+        "uid": "bfht7xqb171fke"
+      },
+      "title": "Disk Used %",
+      "type": "library-panel-ref"
+    },
+    {
+      "gridPos": {
+        "h": 10,
+        "w": 6,
+        "x": 18,
+        "y": 31
+      },
+      "id": 34,
+      "libraryPanel": {
+        "name": "Network",
+        "uid": "afht7ydhi9vy8d"
+      },
+      "title": "Network",
+      "type": "library-panel-ref"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 41
+      },
+      "id": 60,
+      "panels": [],
+      "title": "Service Activity",
+      "type": "row"
+    },
+    {
+      "gridPos": {
+        "h": 9,
+        "w": 8,
+        "x": 0,
+        "y": 42
+      },
+      "id": 61,
+      "libraryPanel": {
+        "name": "Heartbeat Timeline",
+        "uid": "bfht80m5kgdfkb"
+      },
+      "title": "Heartbeat Timeline",
+      "type": "library-panel-ref"
+    },
+    {
+      "gridPos": {
+        "h": 9,
+        "w": 8,
+        "x": 8,
+        "y": 42
+      },
+      "id": 77,
+      "libraryPanel": {
+        "name": "Error Events",
+        "uid": "afht815sm7oxsa"
+      },
+      "title": "Error Events",
+      "type": "library-panel-ref"
+    },
+    {
+      "gridPos": {
+        "h": 9,
+        "w": 8,
+        "x": 16,
+        "y": 42
+      },
+      "id": 78,
+      "libraryPanel": {
+        "name": "Monitoring Data Flow",
+        "uid": "bfht81ulkeyv4d"
+      },
+      "title": "Monitoring Data Flow",
+      "type": "library-panel-ref"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 51
+      },
+      "id": 40,
+      "panels": [],
+      "title": "Top VMs by Utilization",
+      "type": "row"
+    },
+    {
+      "gridPos": {
+        "h": 10,
+        "w": 6,
+        "x": 0,
+        "y": 52
+      },
+      "id": 41,
+      "libraryPanel": {
+        "name": "Top CPU",
+        "uid": "dfht85afygfeof"
+      },
+      "title": "Top CPU",
+      "type": "library-panel-ref"
+    },
+    {
+      "gridPos": {
+        "h": 10,
+        "w": 6,
+        "x": 6,
+        "y": 52
+      },
+      "id": 42,
+      "libraryPanel": {
+        "name": "Top Memory",
+        "uid": "cfht85s37mt4wb"
+      },
+      "title": "Top Memory",
+      "type": "library-panel-ref"
+    },
+    {
+      "gridPos": {
+        "h": 10,
+        "w": 6,
+        "x": 12,
+        "y": 52
+      },
+      "id": 43,
+      "libraryPanel": {
+        "name": "Top Disk",
+        "uid": "ffht86d2tf2m8a"
+      },
+      "title": "Top Disk",
+      "type": "library-panel-ref"
+    },
+    {
+      "gridPos": {
+        "h": 10,
+        "w": 6,
+        "x": 18,
+        "y": 52
+      },
+      "id": 44,
+      "libraryPanel": {
+        "name": "Top Network",
+        "uid": "afht871yjiadce"
+      },
+      "title": "Top Network",
+      "type": "library-panel-ref"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 62
+      },
+      "id": 50,
+      "panels": [],
+      "title": "VM Detail — CPU & Memory",
+      "type": "row"
+    },
+    {
+      "gridPos": {
+        "h": 12,
+        "w": 12,
+        "x": 0,
+        "y": 63
+      },
+      "id": 51,
+      "libraryPanel": {
+        "name": "CPU Utilization Statistics",
+        "uid": "ffht882i019tsd"
+      },
+      "title": "CPU Utilization Statistics",
+      "type": "library-panel-ref"
+    },
+    {
+      "gridPos": {
+        "h": 12,
+        "w": 12,
+        "x": 12,
+        "y": 63
+      },
+      "id": 52,
+      "libraryPanel": {
+        "name": "Memory Utilization Statistics",
+        "uid": "afht88na1mlmoa"
+      },
+      "title": "Memory Utilization Statistics",
+      "type": "library-panel-ref"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 75
+      },
+      "id": 55,
+      "panels": [],
+      "title": "VM Detail — Disk & Network",
+      "type": "row"
+    },
+    {
+      "gridPos": {
+        "h": 12,
+        "w": 12,
+        "x": 0,
+        "y": 76
+      },
+      "id": 56,
+      "libraryPanel": {
+        "name": "Disk Space Statistics",
+        "uid": "cfht89cnvhblsc"
+      },
+      "title": "Disk Space Statistics",
+      "type": "library-panel-ref"
+    },
+    {
+      "gridPos": {
+        "h": 12,
+        "w": 12,
+        "x": 12,
+        "y": 76
+      },
+      "id": 57,
+      "libraryPanel": {
+        "name": "Network Receive Statistics (MB/s)",
+        "uid": "bfht89wi9xvr4e"
+      },
+      "title": "Network Receive Statistics (MB/s)",
+      "type": "library-panel-ref"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 88
+      },
+      "id": 70,
+      "panels": [],
+      "title": "Environment Inventory",
+      "type": "row"
+    },
+    {
+      "gridPos": {
+        "h": 12,
+        "w": 24,
+        "x": 0,
+        "y": 89
+      },
+      "id": 71,
+      "libraryPanel": {
+        "name": "All Monitored Resources",
+        "uid": "bfht8afxa0z5se"
+      },
+      "title": "All Monitored Resources",
+      "type": "library-panel-ref"
+    }
+  ],
+  "preload": false,
+  "refresh": "5m",
+  "schemaVersion": 42,
+  "tags": [
+    "Client-Overview",
+    "Client",
+    "shared"
+  ],
+  "templating": {
+    "list": [
+      {
+        "current": {
+          "text": "Azure Monitor Gaine",
+          "value": "azure-monitor-oob"
+        },
+        "hide": 2,
+        "includeAll": false,
+        "label": "Datasource",
+        "name": "ds",
+        "options": [],
+        "query": "grafana-azure-monitor-datasource",
+        "refresh": 1,
+        "regex": "",
+        "type": "datasource"
+      },
+      {
+        "allValue": "\"\"",
+        "allowCustomValue": false,
+        "current": {
+          "text": "Shionogi",
+          "value": "64ede6fc-b18b-44a9-a687-bb1ee3eca66f"
+        },
+        "datasource": {
+          "type": "grafana-azure-monitor-datasource",
+          "uid": "${ds}"
+        },
+        "definition": "",
+        "includeAll": false,
+        "label": "Subscription",
+        "name": "sub",
+        "options": [],
+        "query": {
+          "grafanaTemplateVariableFn": {
+            "kind": "SubscriptionsQuery",
+            "rawQuery": "Subscriptions()"
+          },
+          "queryType": "Azure Subscriptions",
+          "refId": "A",
+          "subscription": "45490e68-d204-46b9-8efc-4ddf70037bc4"
+        },
+        "refresh": 1,
+        "regex": "",
+        "sort": 5,
+        "type": "query"
+      },
+      {
+        "allowCustomValue": false,
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        },
+        "datasource": {
+          "type": "grafana-azure-monitor-datasource",
+          "uid": "${ds}"
+        },
+        "definition": "",
+        "hide": 2,
+        "includeAll": true,
+        "label": "Resource Group(s)",
+        "name": "rg",
+        "options": [],
+        "query": {
+          "grafanaTemplateVariableFn": {
+            "kind": "ResourceGroupsQuery",
+            "rawQuery": "ResourceGroups($sub)",
+            "subscription": "$sub"
+          },
+          "queryType": "Azure Resource Groups",
+          "refId": "A",
+          "subscription": "$sub"
+        },
+        "refresh": 1,
+        "regex": "",
+        "sort": 5,
+        "type": "query"
+      },
+      {
+        "allowCustomValue": false,
+        "current": {
+          "text": [
+            "East US"
+          ],
+          "value": [
+            "eastus"
+          ]
+        },
+        "definition": "",
+        "hide": 2,
+        "includeAll": false,
+        "multi": true,
+        "name": "region",
+        "options": [],
+        "query": {
+          "azureLogAnalytics": {
+            "query": "",
+            "resources": []
+          },
+          "queryType": "Azure Regions",
+          "refId": "A",
+          "subscription": "$sub"
+        },
+        "refresh": 1,
+        "regex": "",
+        "type": "query"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "",
+  "title": "Client Overview",
+  "uid": "",
+  "version": 30
+}
