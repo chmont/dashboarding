@@ -15,10 +15,11 @@
       }
     ]
   },
+  "description": "Does not inlcude library panels",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 48,
+  "id": 458,
   "links": [],
   "panels": [
     {
@@ -579,7 +580,7 @@
           "refId": "A"
         }
       ],
-      "title": "Monitored VMs ",
+      "title": "CPU Monitored VMs ",
       "type": "stat"
     },
     {
@@ -737,7 +738,7 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "palette-classic-by-name"
+            "mode": "palette-classic"
           },
           "custom": {
             "axisBorderShow": false,
@@ -757,7 +758,7 @@
             },
             "insertNulls": false,
             "lineInterpolation": "smooth",
-            "lineWidth": 2,
+            "lineWidth": 1,
             "pointSize": 5,
             "scaleDistribution": {
               "type": "linear"
@@ -767,10 +768,10 @@
             "spanNulls": false,
             "stacking": {
               "group": "A",
-              "mode": "normal"
+              "mode": "none"
             },
             "thresholdsStyle": {
-              "mode": "off"
+              "mode": "dashed+area"
             }
           },
           "mappings": [
@@ -784,9 +785,10 @@
               "type": "value"
             }
           ],
+          "max": 100,
           "min": 0,
           "thresholds": {
-            "mode": "percentage",
+            "mode": "absolute",
             "steps": [
               {
                 "color": "green",
@@ -819,20 +821,15 @@
       "id": 9,
       "options": {
         "legend": {
-          "calcs": [
-            "min",
-            "max"
-          ],
-          "displayMode": "table",
-          "placement": "right",
-          "showLegend": true,
-          "sortBy": "Max",
-          "sortDesc": true
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
         },
         "tooltip": {
           "hideZeros": false,
-          "mode": "multi",
-          "sort": "desc"
+          "mode": "single",
+          "sort": "none"
         }
       },
       "pluginVersion": "12.3.1",
@@ -841,7 +838,7 @@
           "azureLogAnalytics": {
             "dashboardTime": true,
             "mode": "raw",
-            "query": "Perf\r\n| where CounterName == \"% Processor Time\"\r\n| where InstanceName == \"_Total\"\r\n| summarize AvgCPU = round(avg(CounterValue), 1)\r\n    by Computer, bin(TimeGenerated, 5m)\r\n| order by TimeGenerated asc",
+            "query": "Perf | where CounterName == \"% Processor Time\" | where InstanceName == \"_Total\" | summarize AvgCPU = round(avg(CounterValue), 1) by Computer, bin(TimeGenerated, 5m) | order by TimeGenerated asc",
             "resources": [
               "/subscriptions/$sub"
             ],
@@ -3050,6 +3047,117 @@
         "type": "grafana-azure-monitor-datasource",
         "uid": "azure-monitor-oob"
       },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic-by-name"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "dashed+area"
+            }
+          },
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "dark-purple",
+                "value": 50
+              }
+            ]
+          },
+          "unit": "ms"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 15,
+        "w": 24,
+        "x": 0,
+        "y": 86
+      },
+      "id": 62,
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull",
+            "max",
+            "mean"
+          ],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "pluginVersion": "12.3.1",
+      "targets": [
+        {
+          "azureLogAnalytics": {
+            "dashboardTime": true,
+            "mode": "raw",
+            "query": "InsightsMetrics\r\n| where $__timeFilter(TimeGenerated)\r\n| where Name == \"TransferLatencyMs\"\r\n| extend TagsJson = parse_json(Tags)\r\n| extend Drive = tostring(TagsJson[\"vm.azm.ms/mountId\"])\r\n| where isnotempty(Drive)\r\n| summarize AvgLatencyMs = avg(Val) by bin(TimeGenerated, 5m), Computer, Drive\r\n| extend Series = strcat(Computer, \" / \", Drive)\r\n| project TimeGenerated, Series, AvgLatencyMs\r\n| order by TimeGenerated asc",
+            "resources": [
+              "/subscriptions/$sub"
+            ],
+            "resultFormat": "time_series",
+            "timeColumn": "TimeGenerated"
+          },
+          "azureMonitor": {
+            "allowedTimeGrainsMs": [],
+            "timeGrain": "auto"
+          },
+          "queryType": "Azure Log Analytics",
+          "refId": "A"
+        }
+      ],
+      "title": "Disk latency",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "azure-monitor-oob"
+      },
       "description": "Disk space utilization per VM and mount point. Shows which volumes are running low.",
       "fieldConfig": {
         "defaults": {
@@ -3190,7 +3298,7 @@
         "h": 7,
         "w": 24,
         "x": 0,
-        "y": 86
+        "y": 101
       },
       "id": 32,
       "options": {
@@ -3232,7 +3340,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 93
+        "y": 108
       },
       "id": 33,
       "panels": [],
@@ -3268,7 +3376,7 @@
         "h": 6,
         "w": 4,
         "x": 0,
-        "y": 94
+        "y": 109
       },
       "id": 35,
       "options": {
@@ -3345,7 +3453,7 @@
         "h": 6,
         "w": 4,
         "x": 4,
-        "y": 94
+        "y": 109
       },
       "id": 36,
       "options": {
@@ -3422,7 +3530,7 @@
         "h": 6,
         "w": 4,
         "x": 8,
-        "y": 94
+        "y": 109
       },
       "id": 37,
       "options": {
@@ -3499,7 +3607,7 @@
         "h": 6,
         "w": 4,
         "x": 12,
-        "y": 94
+        "y": 109
       },
       "id": 38,
       "options": {
@@ -3576,7 +3684,7 @@
         "h": 6,
         "w": 4,
         "x": 16,
-        "y": 94
+        "y": 109
       },
       "id": 39,
       "options": {
@@ -3653,7 +3761,7 @@
         "h": 6,
         "w": 4,
         "x": 20,
-        "y": 94
+        "y": 109
       },
       "id": 40,
       "options": {
@@ -3765,7 +3873,7 @@
         "h": 9,
         "w": 12,
         "x": 0,
-        "y": 100
+        "y": 115
       },
       "id": 41,
       "options": {
@@ -3898,7 +4006,7 @@
         "h": 9,
         "w": 12,
         "x": 12,
-        "y": 100
+        "y": 115
       },
       "id": 42,
       "options": {
@@ -4037,7 +4145,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 109
+        "y": 124
       },
       "id": 43,
       "options": {
@@ -4079,7 +4187,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 117
+        "y": 132
       },
       "id": 44,
       "panels": [],
@@ -4087,12 +4195,966 @@
       "type": "row"
     },
     {
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "${ds}"
+      },
+      "description": "Number of Virtual Machines that have sent a heartbeat signal in specified dashboard time. A heartbeat confirms that monitoring agents is running and the machine is reachable. ",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": 0
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 4,
+        "x": 0,
+        "y": 133
+      },
+      "id": 49,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "12.3.1",
+      "targets": [
+        {
+          "azureLogAnalytics": {
+            "dashboardTime": true,
+            "mode": "raw",
+            "query": "Heartbeat\r\n| where TimeGenerated between($__timeFrom..$__timeTo)\r\n| summarize dcount(Computer)",
+            "resources": [
+              "/subscriptions/$sub"
+            ],
+            "resultFormat": "logs",
+            "timeColumn": "TimeGenerated"
+          },
+          "azureMonitor": {
+            "allowedTimeGrainsMs": [],
+            "timeGrain": "auto"
+          },
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "${ds}"
+          },
+          "queryType": "Azure Log Analytics",
+          "refId": "A",
+          "subscriptions": [
+            "80937a4c-8e10-46a3-ab2e-e099988941e7"
+          ]
+        }
+      ],
+      "title": "VMs Online",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "${ds}"
+      },
+      "description": "Virtual Machines ghat reported telemetry in the last specified dashboard time frame but not have sent a heartbeat in 15 minutes. These machines may be shutdown, have failed agent or have lost network connectivity. ",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [
+            {
+              "options": {
+                "0": {
+                  "color": "green",
+                  "index": 0
+                }
+              },
+              "type": "value"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 4,
+        "x": 4,
+        "y": 133
+      },
+      "id": 50,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "12.3.1",
+      "targets": [
+        {
+          "azureLogAnalytics": {
+            "dashboardTime": true,
+            "mode": "raw",
+            "query": "let allVMs = Heartbeat\r\n| where TimeGenerated between ($__timeFrom .. $__timeTo)\r\n| distinct Computer;\r\nlet recentVMs = Heartbeat\r\n| where TimeGenerated >= ago(15m)\r\n| distinct Computer;\r\nallVMs\r\n| where Computer !in (recentVMs)\r\n| summarize OfflineVMs = count()",
+            "resources": [
+              "/subscriptions/$sub"
+            ],
+            "resultFormat": "logs",
+            "timeColumn": "TimeGenerated"
+          },
+          "azureMonitor": {
+            "allowedTimeGrainsMs": [],
+            "timeGrain": "auto"
+          },
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "${ds}"
+          },
+          "queryType": "Azure Log Analytics",
+          "refId": "A"
+        }
+      ],
+      "title": "VMs Offline",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "${ds}"
+      },
+      "description": "Shows the average number of minutes since each computer last reported a heartbeat. Useful for identifying delays or gaps in agent reporting across the environment.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [
+            {
+              "options": {
+                "0": {
+                  "color": "green",
+                  "index": 0
+                }
+              },
+              "type": "value"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "#EAB839",
+                "value": 5
+              },
+              {
+                "color": "dark-red",
+                "value": 15
+              }
+            ]
+          },
+          "unit": "m"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 4,
+        "x": 8,
+        "y": 133
+      },
+      "id": 51,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "12.3.1",
+      "targets": [
+        {
+          "azureLogAnalytics": {
+            "dashboardTime": true,
+            "mode": "raw",
+            "query": "Heartbeat\r\n| summarize LastBeat = max(TimeGenerated) by Computer\r\n| extend AgeMinutes = datetime_diff('minute', now(), LastBeat)\r\n| summarize round(avg(AgeMinutes), 1)",
+            "resources": [
+              "/subscriptions/$sub"
+            ],
+            "resultFormat": "logs",
+            "timeColumn": "TimeGenerated"
+          },
+          "azureMonitor": {
+            "allowedTimeGrainsMs": [],
+            "timeGrain": "auto"
+          },
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "${ds}"
+          },
+          "queryType": "Azure Log Analytics",
+          "refId": "A"
+        }
+      ],
+      "title": "Avg Heartbeat Age",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "${ds}"
+      },
+      "description": "The longest gap between now and the most recent heartbeat from any single VM. This surfaces the single stalest machine in the environment. Values above 15 minuets warrant investigation.  ",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [
+            {
+              "options": {
+                "0": {
+                  "color": "green",
+                  "index": 0
+                }
+              },
+              "type": "value"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "#EAB839",
+                "value": 10
+              },
+              {
+                "color": "semi-dark-red",
+                "value": 30
+              },
+              {
+                "color": "dark-red",
+                "value": 60
+              }
+            ]
+          },
+          "unit": "m"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 4,
+        "x": 12,
+        "y": 133
+      },
+      "id": 52,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "12.3.1",
+      "targets": [
+        {
+          "azureLogAnalytics": {
+            "dashboardTime": true,
+            "mode": "raw",
+            "query": "Heartbeat\r\n| summarize LastBeat = max(TimeGenerated) by Computer\r\n| extend AgeMinutes = datetime_diff('minute', now(), LastBeat)\r\n| summarize round(max(AgeMinutes), 1)",
+            "resources": [
+              "/subscriptions/$sub"
+            ],
+            "resultFormat": "logs",
+            "timeColumn": "TimeGenerated"
+          },
+          "azureMonitor": {
+            "allowedTimeGrainsMs": [],
+            "timeGrain": "auto"
+          },
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "${ds}"
+          },
+          "queryType": "Azure Log Analytics",
+          "refId": "A"
+        }
+      ],
+      "title": "Max Heartbeat Age",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "${ds}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": 0
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 4,
+        "x": 16,
+        "y": 133
+      },
+      "id": 53,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": true
+        },
+        "showPercentChange": false,
+        "textMode": "value_and_name",
+        "wideLayout": false
+      },
+      "pluginVersion": "12.3.1",
+      "targets": [
+        {
+          "azureLogAnalytics": {
+            "dashboardTime": true,
+            "mode": "raw",
+            "query": "Heartbeat\r\n| where TimeGenerated between ($__timeFrom .. $__timeTo)\r\n| summarize VMs = dcount(Computer) by Category",
+            "resources": [
+              "/subscriptions/$sub"
+            ],
+            "resultFormat": "logs",
+            "timeColumn": "TimeGenerated"
+          },
+          "azureMonitor": {
+            "allowedTimeGrainsMs": [],
+            "timeGrain": "auto"
+          },
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "${ds}"
+          },
+          "queryType": "Azure Log Analytics",
+          "refId": "A"
+        }
+      ],
+      "title": "Agent Types",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "${ds}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": 0
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 4,
+        "x": 20,
+        "y": 133
+      },
+      "id": 54,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": true
+        },
+        "showPercentChange": false,
+        "textMode": "value_and_name",
+        "wideLayout": false
+      },
+      "pluginVersion": "12.3.1",
+      "targets": [
+        {
+          "azureLogAnalytics": {
+            "dashboardTime": true,
+            "mode": "raw",
+            "query": "Heartbeat\r\n| where TimeGenerated >= ago(1h)\r\n| summarize VMs = dcount(Computer) by OSType",
+            "resources": [
+              "/subscriptions/$sub"
+            ],
+            "resultFormat": "logs",
+            "timeColumn": "TimeGenerated"
+          },
+          "azureMonitor": {
+            "allowedTimeGrainsMs": [],
+            "timeGrain": "auto"
+          },
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "${ds}"
+          },
+          "queryType": "Azure Log Analytics",
+          "refId": "A"
+        }
+      ],
+      "title": "OS Distribution",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "${ds}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 11,
+        "w": 12,
+        "x": 0,
+        "y": 138
+      },
+      "id": 55,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "last"
+          ],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.3.1",
+      "targets": [
+        {
+          "azureLogAnalytics": {
+            "dashboardTime": true,
+            "mode": "raw",
+            "query": "Heartbeat\r\n| summarize Heartbeats = count() by Computer, bin(TimeGenerated, 5m)\r\n| order by TimeGenerated asc",
+            "resources": [
+              "/subscriptions/$sub"
+            ],
+            "resultFormat": "time_series",
+            "timeColumn": "TimeGenerated"
+          },
+          "azureMonitor": {
+            "allowedTimeGrainsMs": [],
+            "timeGrain": "auto"
+          },
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "${ds}"
+          },
+          "queryType": "Azure Log Analytics",
+          "refId": "A"
+        }
+      ],
+      "title": " Heartbeat Timeline — Per VM",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "${ds}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "area"
+            }
+          },
+          "mappings": [
+            {
+              "options": {
+                "0": {
+                  "color": "green",
+                  "index": 0
+                }
+              },
+              "type": "value"
+            }
+          ],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "yellow",
+                "value": 5
+              },
+              {
+                "color": "dark-red",
+                "value": 15
+              }
+            ]
+          },
+          "unit": "m"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 11,
+        "w": 12,
+        "x": 12,
+        "y": 138
+      },
+      "id": 56,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "last"
+          ],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.3.1",
+      "targets": [
+        {
+          "azureLogAnalytics": {
+            "dashboardTime": true,
+            "mode": "raw",
+            "query": "Heartbeat\r\n| summarize LastBeat = max(TimeGenerated) by Computer, bin(TimeGenerated, 5m)\r\n| extend AgeMins = datetime_diff('minute', bin(now(), 5m), LastBeat)\r\n| project Computer, TimeGenerated, AgeMins\r\n| order by TimeGenerated asc",
+            "resources": [
+              "/subscriptions/$sub"
+            ],
+            "resultFormat": "time_series",
+            "timeColumn": "TimeGenerated"
+          },
+          "azureMonitor": {
+            "allowedTimeGrainsMs": [],
+            "timeGrain": "auto"
+          },
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "${ds}"
+          },
+          "queryType": "Azure Log Analytics",
+          "refId": "A"
+        }
+      ],
+      "title": "Heartbeat Freshness — Per VM",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "${ds}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "footer": {
+              "reducers": []
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Status"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "options": {
+                      "Offline": {
+                        "color": "dark-red",
+                        "index": 1
+                      },
+                      "Online": {
+                        "color": "green",
+                        "index": 0
+                      }
+                    },
+                    "type": "value"
+                  }
+                ]
+              },
+              {
+                "id": "custom.width",
+                "value": 90
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "AgeMins"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Age (min)"
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "applyToRow": false,
+                  "mode": "basic",
+                  "type": "color-background"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": 0
+                    },
+                    {
+                      "color": "yellow",
+                      "value": 5
+                    },
+                    {
+                      "color": "dark-red",
+                      "value": 15
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "unit",
+                "value": "m"
+              },
+              {
+                "id": "custom.width",
+                "value": 90
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "HeartbeatCount"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Heartbeats"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "AgentCategory"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Agent"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "AgentVersion"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Version"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "ComputerIP"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "IP Address"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 11,
+        "w": 24,
+        "x": 0,
+        "y": 149
+      },
+      "id": 57,
+      "options": {
+        "cellHeight": "sm",
+        "showHeader": true
+      },
+      "pluginVersion": "12.3.1",
+      "targets": [
+        {
+          "azureLogAnalytics": {
+            "dashboardTime": true,
+            "mode": "raw",
+            "query": "let startDateTime = $__timeFrom;\r\nlet endDateTime = $__timeTo;\r\nlet allHeartbeats = Heartbeat\r\n| where TimeGenerated between (startDateTime .. endDateTime);\r\nallHeartbeats\r\n| summarize\r\n    LastHeartbeat = max(TimeGenerated),\r\n    HeartbeatCount = count(),\r\n    OSType = take_any(OSType),\r\n    AgentVersion = take_any(Version),\r\n    AgentCategory = take_any(Category),\r\n    ComputerIP = take_any(ComputerIP)\r\n    by Computer\r\n| extend\r\n    AgeMins = datetime_diff('minute', now(), LastHeartbeat),\r\n    Status = iff(datetime_diff('minute', now(), LastHeartbeat) <= 15, \"Online\", \"Offline\")\r\n| project Computer, Status, AgeMins, LastHeartbeat, HeartbeatCount, OSType, AgentCategory, AgentVersion, ComputerIP\r\n| order by AgeMins desc",
+            "resources": [
+              "/subscriptions/$sub"
+            ],
+            "resultFormat": "logs",
+            "timeColumn": "TimeGenerated"
+          },
+          "azureMonitor": {
+            "allowedTimeGrainsMs": [],
+            "timeGrain": "auto"
+          },
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "${ds}"
+          },
+          "queryType": "Azure Log Analytics",
+          "refId": "A"
+        }
+      ],
+      "title": "VM Health Detail",
+      "type": "table"
+    },
+    {
       "collapsed": false,
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 118
+        "y": 160
       },
       "id": 45,
       "panels": [],
@@ -4128,10 +5190,10 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 7,
-        "w": 6,
+        "h": 6,
+        "w": 4,
         "x": 0,
-        "y": 119
+        "y": 161
       },
       "id": 46,
       "options": {
@@ -4211,10 +5273,10 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 7,
-        "w": 6,
-        "x": 6,
-        "y": 119
+        "h": 6,
+        "w": 4,
+        "x": 4,
+        "y": 161
       },
       "id": 47,
       "options": {
@@ -4300,17 +5362,17 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 7,
-        "w": 5,
-        "x": 12,
-        "y": 119
+        "h": 6,
+        "w": 4,
+        "x": 8,
+        "y": 161
       },
       "id": 48,
       "options": {
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "vertical",
         "percentChangeColorMode": "standard",
         "reduceOptions": {
           "calcs": [
@@ -4320,8 +5382,8 @@
           "values": false
         },
         "showPercentChange": false,
-        "textMode": "auto",
-        "wideLayout": true
+        "textMode": "value_and_name",
+        "wideLayout": false
       },
       "pluginVersion": "12.3.1",
       "targets": [
@@ -4346,14 +5408,514 @@
       ],
       "title": "Healthy VMs",
       "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "${ds}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "yellow",
+                "value": 70
+              },
+              {
+                "color": "dark-red",
+                "value": 85
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 4,
+        "x": 12,
+        "y": 161
+      },
+      "id": 58,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "value_and_name",
+        "wideLayout": false
+      },
+      "pluginVersion": "12.3.1",
+      "targets": [
+        {
+          "azureLogAnalytics": {
+            "dashboardTime": true,
+            "mode": "raw",
+            "query": "let cpu = Perf\r\n| where CounterName == \"% Processor Time\" and InstanceName == \"_Total\"\r\n| summarize CPU = avg(CounterValue) by Computer;\r\nlet mem = Perf\r\n| where CounterName == \"% Committed Bytes In Use\"\r\n| summarize Mem = avg(CounterValue) by Computer;\r\nlet disk = Perf\r\n| where ObjectName == \"LogicalDisk\" and CounterName == \"% Free Space\"\r\n| extend Used = 100.0 - CounterValue\r\n| summarize Disk = avg(Used) by Computer;\r\ncpu\r\n| join kind=leftouter mem on Computer\r\n| join kind=leftouter disk on Computer\r\n| extend Score = round(\r\n    (coalesce(CPU, 0.0) + coalesce(Mem, 0.0) + coalesce(Disk, 0.0)) / 3.0,\r\n    1\r\n)\r\n| top 1 by Score desc\r\n| project Computer, Score",
+            "resources": [
+              "/subscriptions/$sub"
+            ],
+            "resultFormat": "logs",
+            "timeColumn": "TimeGenerated"
+          },
+          "azureMonitor": {
+            "allowedTimeGrainsMs": [],
+            "timeGrain": "auto"
+          },
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "${ds}"
+          },
+          "queryType": "Azure Log Analytics",
+          "refId": "A"
+        }
+      ],
+      "title": " Most Impacted VM",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "azure-monitor-oob"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "footer": {
+              "reducers": []
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "CPU"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "mode": "gradient",
+                  "type": "gauge",
+                  "valueDisplayMode": "text"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": 0
+                    },
+                    {
+                      "color": "yellow",
+                      "value": 70
+                    },
+                    {
+                      "color": "dark-red",
+                      "value": 90
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "min",
+                "value": 0
+              },
+              {
+                "id": "max",
+                "value": 100
+              },
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "custom.width",
+                "value": 90
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Memory"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "gauge"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "blue",
+                      "value": 0
+                    },
+                    {
+                      "color": "yellow",
+                      "value": 70
+                    },
+                    {
+                      "color": "dark-red",
+                      "value": 90
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "min",
+                "value": 0
+              },
+              {
+                "id": "max",
+                "value": 100
+              },
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "custom.width",
+                "value": 90
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Disk"
+            },
+            "properties": [
+              {
+                "id": "custom.inspect",
+                "value": false
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "gauge"
+                }
+              },
+              {
+                "id": "min",
+                "value": 0
+              },
+              {
+                "id": "max",
+                "value": 100
+              },
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "custom.width",
+                "value": 90
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "NetMBps"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Network (MB/s)"
+              },
+              {
+                "id": "unit",
+                "value": "Mbits"
+              },
+              {
+                "id": "custom.width",
+                "value": 90
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Score"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 90
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background"
+                }
+              },
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": 0
+                    },
+                    {
+                      "color": "yellow",
+                      "value": 75
+                    },
+                    {
+                      "color": "dark-red",
+                      "value": 90
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Computer"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 240
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Network (MB/s)"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 137
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 20,
+        "w": 8,
+        "x": 16,
+        "y": 161
+      },
+      "id": 60,
+      "options": {
+        "cellHeight": "sm",
+        "showHeader": true,
+        "sortBy": []
+      },
+      "pluginVersion": "12.3.1",
+      "targets": [
+        {
+          "azureLogAnalytics": {
+            "dashboardTime": true,
+            "mode": "raw",
+            "query": "let startDateTime = $__timeFrom;\r\nlet endDateTime = $__timeTo;\r\nlet cpu = Perf\r\n| where TimeGenerated between (startDateTime .. endDateTime)\r\n| where CounterName == \"% Processor Time\" and InstanceName == \"_Total\"\r\n| summarize CPU = round(avg(CounterValue), 1) by Computer;\r\nlet mem = Perf\r\n| where TimeGenerated between (startDateTime .. endDateTime)\r\n| where CounterName == \"% Committed Bytes In Use\"\r\n| summarize Memory = round(avg(CounterValue), 1) by Computer;\r\nlet disk = Perf\r\n| where TimeGenerated between (startDateTime .. endDateTime)\r\n| where ObjectName == \"LogicalDisk\" and CounterName == \"% Free Space\"\r\n| extend Used = 100.0 - CounterValue\r\n| summarize Disk = round(avg(Used), 1) by Computer;\r\nlet net = Perf\r\n| where TimeGenerated between (startDateTime .. endDateTime)\r\n| where CounterName == \"Bytes Total/sec\"\r\n| summarize NetMBps = round(avg(CounterValue) / 1024.0 / 1024.0, 2) by Computer;\r\ncpu\r\n| join kind=leftouter mem on Computer\r\n| join kind=leftouter disk on Computer\r\n| join kind=leftouter net on Computer\r\n| extend Score = round((\r\n    coalesce(CPU, 0.0) +\r\n    coalesce(Memory, 0.0) +\r\n    coalesce(Disk, 0.0)\r\n) / 3.0, 1)\r\n| project Computer, Score, CPU, Memory, Disk, NetMBps\r\n| order by Score desc",
+            "resources": [
+              "/subscriptions/$sub"
+            ],
+            "resultFormat": "logs",
+            "timeColumn": "TimeGenerated"
+          },
+          "azureMonitor": {
+            "allowedTimeGrainsMs": [],
+            "timeGrain": "auto"
+          },
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "azure-monitor-oob"
+          },
+          "queryType": "Azure Log Analytics",
+          "refId": "A"
+        }
+      ],
+      "title": " Hotspot Heatmap — All VMs",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "${ds}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 1,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "area"
+            }
+          },
+          "mappings": [],
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "yellow",
+                "value": 70
+              },
+              {
+                "color": "dark-red",
+                "value": 90
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 14,
+        "w": 16,
+        "x": 0,
+        "y": 167
+      },
+      "id": 61,
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull",
+            "mean",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.3.1",
+      "targets": [
+        {
+          "azureLogAnalytics": {
+            "dashboardTime": true,
+            "mode": "raw",
+            "query": "let topVMs = Perf\r\n| where CounterName == \"% Processor Time\" and InstanceName == \"_Total\"\r\n| summarize CPU = avg(CounterValue) by Computer\r\n| top 5 by CPU desc\r\n| project Computer;\r\nPerf\r\n| where CounterName == \"% Processor Time\" and InstanceName == \"_Total\"\r\n| where Computer in (topVMs)\r\n| summarize CPU = round(avg(CounterValue), 1) by Computer, bin(TimeGenerated, 5m)\r\n| order by TimeGenerated asc",
+            "resources": [
+              "/subscriptions/$sub"
+            ],
+            "resultFormat": "time_series",
+            "timeColumn": "TimeGenerated"
+          },
+          "azureMonitor": {
+            "allowedTimeGrainsMs": [],
+            "timeGrain": "auto"
+          },
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "${ds}"
+          },
+          "queryType": "Azure Log Analytics",
+          "refId": "A"
+        }
+      ],
+      "title": " Hotspot Trend — Top 5 VMs by CPU ",
+      "type": "timeseries"
     }
   ],
   "preload": false,
   "schemaVersion": 42,
   "tags": [
-    "Client-Performance",
-    "Infrastructure",
-    "VM-Metrics"
+    "Shared",
+    "Client",
+    "Performance"
   ],
   "templating": {
     "list": [
@@ -4391,44 +5953,16 @@
         "refresh": 1,
         "regex": "",
         "type": "query"
-      },
-      {
-        "allowCustomValue": false,
-        "current": {
-          "text": "azureapp-auto-alerts-d816d9-michael_krist_admin_gaine_com",
-          "value": "azureapp-auto-alerts-d816d9-michael_krist_admin_gaine_com"
-        },
-        "datasource": {
-          "type": "grafana-azure-monitor-datasource",
-          "uid": "${ds}"
-        },
-        "definition": "",
-        "hide": 2,
-        "label": "Resource Group(s)",
-        "name": "rg",
-        "options": [],
-        "query": {
-          "azureLogAnalytics": {
-            "query": "",
-            "resources": []
-          },
-          "queryType": "Azure Resource Groups",
-          "refId": "A",
-          "subscription": "$sub"
-        },
-        "refresh": 1,
-        "regex": "",
-        "type": "query"
       }
     ]
   },
   "time": {
-    "from": "now-6h",
+    "from": "now-1h",
     "to": "now"
   },
   "timepicker": {},
   "timezone": "browser",
-  "title": "Client Performance ",
-  "uid": "chlg787",
-  "version": 50
+  "title": "Client Performance Metrics Copy",
+  "uid": "chw8z26",
+  "version": 1
 }
