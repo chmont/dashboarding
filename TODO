@@ -1,0 +1,46 @@
+* Create one single shared panel in a Homepeage dashboard in the Shared folder
+* Create and standardize folder and dashboard uid 
+* When creating uids for Shared folder make it standard and can be reusesd 
+* Need to have a standard uids for shred library to refreence to 
+* When depolying new dashboards we can send a Patch request to /api/library-element/::uid
+* when addong dashboards to shared folder update library panel in home page to point to new dashboard. (refelects)
+
+* If a new dashboard needs to be added in 
+    * Specify what folder
+    * validate folder
+    * Add in new dashboard
+    * if its a client in client homepages folder than 
+        * modify homepage json modify the subcriton 
+        * hide variabkle
+        * add in standard uid
+        * the title of dashboard should be ```<ClientName> Homepage```
+    * if its a shared dashboard
+        * standardize uid
+        * no modify variables needed.
+
+* on board create Client holders and corresponing dashboards
+    * Clients get a new folder thats the same name
+    * add in new homepage (template in directory)
+    * Homepage title should be ```<ClientName> Homepage```
+    * the uid of the homepage should be ```gaine-<clientname>-homepage```
+
+* if sending a dashboard to non shared or client then ask where 
+    * if the folder is invalid then reject
+    * standardize the dashboard uid. 
+
+
+* recreate (this will be for recreating shred folder and its child sub)
+    * the the folder uid should be ```gaine-shared-folder```
+    * the dashboard should be ```gaine-shared-<dashboard title>-dasboard```
+    * the sub folder should include the prefix of the parent ```gaine-shared-<foldername>-folder```
+    * the uid of the library panel should refrence its parent falders
+        * ```client-portal-dashboard-> Home-Dasboard-> Shared```
+
+```
+dashboards/
+    templates/
+        client/
+            Client-Homepage
+        shared/
+            Client-Performance
+```
