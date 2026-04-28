@@ -1,0 +1,82 @@
+{
+  "libraryPanel": {
+    "id": 95,
+    "orgId": 1,
+    "folderId": 436,
+    "folderUid": "TestShared-Child",
+    "uid": "custom-library-panel-uid",
+    "name": "Dashboard Portal",
+    "kind": 1,
+    "type": "text",
+    "description": "This will serve as a portal on the different panel ",
+    "model": {
+      "description": "This will serve as a portal on the different panel ",
+      "options": {
+        "code": {
+          "language": "plaintext",
+          "showLineNumbers": false,
+          "showMiniMap": false
+        },
+        "content": "## ${sub:text} Dashboard Portals\n---\n\n### Overview\n- [${sub:text}-Overview](/d/<uid>/?var-sub=${sub})\n\n### Performance\n- [${sub:text}-Performance](/d/<uid>/?var-sub=${sub})\n",
+        "mode": "markdown"
+      },
+      "pluginVersion": "12.3.1",
+      "type": "text",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "uid": "azure-monitor-oob",
+            "type": "grafana-azure-monitor-datasource"
+          }
+        }
+      ],
+      "datasource": {
+        "uid": "azure-monitor-oob",
+        "type": "grafana-azure-monitor-datasource"
+      }
+    },
+    "version": 2,
+    "meta": {
+      "folderName": "Child",
+      "folderUid": "TestShared-Child",
+      "connectedDashboards": 1,
+      "created": "2026-04-23T19:15:39Z",
+      "updated": "2026-04-28T07:59:22Z",
+      "createdBy": {
+        "id": 43,
+        "name": "sa-1-test",
+        "avatarUrl": "/avatar/ab2b012446086594573f844d7d98821b"
+      },
+      "updatedBy": {
+        "id": 5,
+        "name": "",
+        "avatarUrl": "/avatar/5eaa562f03a3c028d9925d1ebb8af34e"
+      }
+    }
+  },
+  "id": 4,
+  "type": "text",
+  "title": "",
+  "description": "This will serve as a portal on the different panel ",
+  "gridPos": {
+    "x": 0,
+    "y": 7,
+    "h": 12,
+    "w": 24
+  },
+  "fieldConfig": {
+    "defaults": {},
+    "overrides": []
+  },
+  "pluginVersion": "12.3.1",
+  "options": {
+    "mode": "markdown",
+    "code": {
+      "language": "plaintext",
+      "showLineNumbers": false,
+      "showMiniMap": false
+    },
+    "content": "## ${sub:text} Dashboard Portals\n---\n\n### Overview\n- [${sub:text}-Overview](/d/<uid>/?var-sub=${sub})\n\n### Performance\n- [${sub:text}-Performance](/d/<uid>/?var-sub=${sub})\n"
+  }
+}
