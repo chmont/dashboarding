@@ -1,0 +1,138 @@
+Row 1 — VM Vitals (stat panels)
+
+Panel
+
+Type
+
+Description
+
+Last Heartbeat
+
+Stat
+
+Time since last heartbeat for $computer
+
+Avg CPU %
+
+Stat
+
+Average over selected time range
+
+Current Memory Available
+
+Stat
+
+Most recent value in MB
+
+Disk — Lowest Free %
+
+Stat
+
+Worst volume across all drives on selected VM
+
+Row 2 — CPU Detail
+
+Panel
+
+Type
+
+Description
+
+CPU % Over Time
+
+Time series
+
+Per-VM if multi-select, with threshold line at 80%
+
+CPU % Distribution
+
+Histogram
+
+Useful for spotting sustained high vs. spikes
+
+Row 3 — Memory Detail
+
+Panel
+
+Type
+
+Description
+
+Available Memory MB Over Time
+
+Time series
+
+With threshold line at a sensible floor (e.g. 512MB)
+
+Memory Committed Bytes in Use %
+
+Time series
+
+If collected via Perf counter
+
+Row 4 — Disk I/O
+
+Panel
+
+Type
+
+Description
+
+Disk Read Bytes/sec
+
+Time series
+
+Per logical disk
+
+Disk Write Bytes/sec
+
+Time series
+
+Per logical disk
+
+Avg Disk Queue Length
+
+Time series
+
+Flag sustained >1 as a threshold
+
+Row 5 — Disk Space (Detail)
+
+Panel
+
+Type
+
+Description
+
+Free Space % by Volume Over Time
+
+Time series
+
+One series per drive letter
+
+Disk Space Table
+
+Table
+
+Current snapshot: Drive, Total GB, Used GB, Free GB, Free%
+
+Row 6 — Network (VM-level)
+
+Panel
+
+Type
+
+Description
+
+Network Bytes Sent/sec
+
+Time series
+
+Per adapter
+
+Network Bytes Received/sec
+
+Time series
+
+Per adapter
+
