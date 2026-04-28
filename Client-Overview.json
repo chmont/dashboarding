@@ -19,7 +19,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
-  "id": 162,
+  "id": 0,
   "links": [],
   "panels": [
     {
@@ -36,6 +36,11 @@
       "type": "row"
     },
     {
+      "description": "",
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
       "gridPos": {
         "h": 7,
         "w": 8,
@@ -43,14 +48,45 @@
         "y": 1
       },
       "id": 2,
-      "libraryPanel": {
-        "name": "",
-        "uid": "bfht73w5ukphcd"
+      "options": {
+        "code": {
+          "language": "plaintext",
+          "showLineNumbers": false,
+          "showMiniMap": false
+        },
+        "content": "# ${sub:text}\n\n**Subscription ID:** `${sub}`\n\n**Region:** ${region:text}\n\n**Resource Group:** ${rg:text}",
+        "mode": "markdown"
       },
+      "pluginVersion": "12.3.1",
       "title": "",
-      "type": "library-panel-ref"
+      "transparent": true,
+      "type": "text"
     },
     {
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "azure-monitor-oob"
+      },
+      "description": "Machines sending heartbeat telemetry in the last hour. added description.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "purple",
+            "mode": "fixed"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": 0
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
       "gridPos": {
         "h": 3,
         "w": 4,
@@ -58,14 +94,84 @@
         "y": 1
       },
       "id": 7,
-      "libraryPanel": {
-        "name": "Machines Reporting",
-        "uid": "efht75ghmnapse"
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "value",
+        "wideLayout": true
       },
+      "pluginVersion": "12.3.1",
+      "targets": [
+        {
+          "azureLogAnalytics": {
+            "dashboardTime": true,
+            "mode": "raw",
+            "query": "Heartbeat\r\n| where TimeGenerated >= ago(1h)\r\n| summarize MachinesReporting = dcount(Computer)",
+            "resources": [
+              "/subscriptions/$sub"
+            ],
+            "resultFormat": "logs",
+            "timeColumn": "TimeGenerated"
+          },
+          "azureMonitor": {
+            "allowedTimeGrainsMs": [],
+            "timeGrain": "auto"
+          },
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "azure-monitor-oob"
+          },
+          "queryType": "Azure Log Analytics",
+          "refId": "A"
+        }
+      ],
       "title": "Machines Reporting",
-      "type": "library-panel-ref"
+      "type": "stat"
     },
     {
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "${ds}"
+      },
+      "description": "Minutes since the most recent heartbeat from any machine.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "#EAB839",
+                "value": 6
+              },
+              {
+                "color": "dark-red",
+                "value": 15
+              }
+            ]
+          },
+          "unit": "m"
+        },
+        "overrides": []
+      },
       "gridPos": {
         "h": 3,
         "w": 4,
@@ -73,14 +179,76 @@
         "y": 1
       },
       "id": 8,
-      "libraryPanel": {
-        "name": "Heartbeat Freshness",
-        "uid": "afht76peywikgd"
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
       },
+      "pluginVersion": "12.3.1",
+      "targets": [
+        {
+          "azureLogAnalytics": {
+            "dashboardTime": true,
+            "mode": "raw",
+            "query": "Heartbeat\r\n| summarize LastHeartbeat = max(TimeGenerated)\r\n| extend MinutesSinceHeartbeat = datetime_diff('minute', now(), LastHeartbeat)\r\n| project MinutesSinceHeartbeat",
+            "resources": [
+              "/subscriptions/$sub"
+            ],
+            "resultFormat": "logs",
+            "timeColumn": "TimeGenerated"
+          },
+          "azureMonitor": {
+            "allowedTimeGrainsMs": [],
+            "timeGrain": "auto"
+          },
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "${ds}"
+          },
+          "queryType": "Azure Log Analytics",
+          "refId": "A"
+        }
+      ],
       "title": "Heartbeat Freshness",
-      "type": "library-panel-ref"
+      "type": "stat"
     },
     {
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "${ds}"
+      },
+      "description": "Total VMs in this subscription. Compare against Reporting VMs to spot monitoring gaps.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "#6e9fff",
+            "mode": "fixed"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#6e9fff",
+                "value": 0
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
       "gridPos": {
         "h": 3,
         "w": 4,
@@ -88,14 +256,89 @@
         "y": 1
       },
       "id": 72,
-      "libraryPanel": {
-        "name": "Total VMs",
-        "uid": "cfht77axaxddsc"
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
       },
+      "pluginVersion": "12.3.1",
+      "targets": [
+        {
+          "azureMonitor": {
+            "allowedTimeGrainsMs": [],
+            "timeGrain": "auto"
+          },
+          "azureResourceGraph": {
+            "query": "Resources\r\n| where subscriptionId == ${sub:singlequote}\r\n| where type =~ 'microsoft.compute/virtualmachines'\r\n| summarize VMCount = count()",
+            "scope": "directory"
+          },
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "${ds}"
+          },
+          "queryType": "Azure Resource Graph",
+          "refId": "A",
+          "subscriptions": []
+        }
+      ],
       "title": "Total VMs",
-      "type": "library-panel-ref"
+      "type": "stat"
     },
     {
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "${ds}"
+      },
+      "description": "VMs that exist but did NOT send a heartbeat in the last hour. Zero is the goal. Any number above zero means you have blind spots.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [
+            {
+              "options": {
+                "0": {
+                  "color": "green",
+                  "index": 0,
+                  "text": "All Clear"
+                }
+              },
+              "type": "value"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "#EAB839",
+                "value": 1
+              },
+              {
+                "color": "dark-red",
+                "value": 3
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
       "gridPos": {
         "h": 3,
         "w": 4,
@@ -103,14 +346,196 @@
         "y": 1
       },
       "id": 73,
-      "libraryPanel": {
-        "name": "VMs Not Reporting",
-        "uid": "ffht799uddhq8d"
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
       },
+      "pluginVersion": "12.3.1",
+      "targets": [
+        {
+          "azureLogAnalytics": {
+            "dashboardTime": true,
+            "mode": "raw",
+            "query": "Heartbeat\n| where TimeGenerated >= ago(1h)\n| distinct Computer\n| summarize Reporting = count()",
+            "resources": [
+              "/subscriptions/$sub"
+            ],
+            "resultFormat": "logs",
+            "timeColumn": "TimeGenerated"
+          },
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "${ds}"
+          },
+          "queryType": "Azure Log Analytics",
+          "refId": "A"
+        },
+        {
+          "azureMonitor": {
+            "allowedTimeGrainsMs": [],
+            "timeGrain": "auto"
+          },
+          "azureResourceGraph": {
+            "query": "Resources\r\n| where subscriptionId == ${sub:singlequote}\r\n| where type =~ 'microsoft.compute/virtualmachines'\r\n| summarize TotalVMs = count()",
+            "scope": "directory"
+          },
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "${ds}"
+          },
+          "queryType": "Azure Resource Graph",
+          "refId": "B",
+          "subscriptions": []
+        }
+      ],
       "title": "VMs Not Reporting",
-      "type": "library-panel-ref"
+      "transformations": [
+        {
+          "id": "merge",
+          "options": {}
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "alias": "NotReporting",
+            "binary": {
+              "left": "TotalVMs",
+              "operator": "-",
+              "right": "Reporting"
+            },
+            "mode": "binary"
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Reporting": true,
+              "TotalVMs": true
+            }
+          }
+        }
+      ],
+      "type": "stat"
     },
     {
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "${ds}"
+      },
+      "description": "VMs that exist in the subscription but have NOT sent a heartbeat in the last hour. These are your blind spots — either offline, deallocated, or missing a monitoring agent.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "footer": {
+              "reducers": []
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Status"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "options": {
+                      "Not Reporting": {
+                        "color": "dark-red",
+                        "index": 0,
+                        "text": "Not Reporting"
+                      }
+                    },
+                    "type": "value"
+                  }
+                ]
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "mode": "basic",
+                  "type": "color-background"
+                }
+              },
+              {
+                "id": "custom.width",
+                "value": 130
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "PowerState"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "options": {
+                      "Deallocated": {
+                        "color": "orange",
+                        "index": 2
+                      },
+                      "Running": {
+                        "color": "green",
+                        "index": 0
+                      },
+                      "Stopped": {
+                        "color": "dark-red",
+                        "index": 1
+                      }
+                    },
+                    "type": "value"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
       "gridPos": {
         "h": 6,
         "w": 16,
@@ -118,12 +543,32 @@
         "y": 4
       },
       "id": 74,
-      "libraryPanel": {
-        "name": "VM Inventory & Power State",
-        "uid": "efht7ioppz7y8d"
+      "options": {
+        "cellHeight": "sm",
+        "showHeader": true
       },
+      "pluginVersion": "12.3.1",
+      "targets": [
+        {
+          "azureMonitor": {
+            "allowedTimeGrainsMs": [],
+            "timeGrain": "auto"
+          },
+          "azureResourceGraph": {
+            "query": "Resources\r\n| where subscriptionId == ${sub:singlequote}\r\n| where type =~ 'microsoft.compute/virtualmachines'\r\n| extend powerState = tostring(properties.extended.instanceView.powerState.code)\r\n| extend vmSize = tostring(properties.hardwareProfile.vmSize)\r\n| project VMName = name, ResourceGroup = resourceGroup, Region = location, Size = vmSize, PowerState = case(\r\n    powerState == 'PowerState/running', 'Running',\r\n    powerState == 'PowerState/deallocated', 'Deallocated',\r\n    powerState == 'PowerState/stopped', 'Stopped',\r\n    coalesce(powerState, 'Unknown')\r\n)\r\n| order by ResourceGroup asc, VMName asc",
+            "scope": "directory"
+          },
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "${ds}"
+          },
+          "queryType": "Azure Resource Graph",
+          "refId": "A",
+          "subscriptions": []
+        }
+      ],
       "title": "VM Inventory & Power State",
-      "type": "library-panel-ref"
+      "type": "table"
     },
     {
       "collapsed": false,
@@ -139,6 +584,44 @@
       "type": "row"
     },
     {
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "${ds}"
+      },
+      "description": "Active Sev0 and Sev1 alerts. Non-zero means something needs immediate attention.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [
+            {
+              "options": {
+                "0": {
+                  "color": "green",
+                  "index": 0,
+                  "text": "None"
+                }
+              },
+              "type": "value"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "dark-red",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
       "gridPos": {
         "h": 4,
         "w": 6,
@@ -146,14 +629,93 @@
         "y": 11
       },
       "id": 21,
-      "libraryPanel": {
-        "name": "Critical Alerts",
-        "uid": "afht7l7wkay9sf"
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "horizontal",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
       },
+      "pluginVersion": "12.3.1",
+      "targets": [
+        {
+          "azureMonitor": {
+            "allowedTimeGrainsMs": [],
+            "timeGrain": "auto"
+          },
+          "azureResourceGraph": {
+            "query": "AlertsManagementResources\r\n| where subscriptionId in~ (${sub:singlequote})\r\n| where properties.essentials.monitorCondition =~ \"Fired\"\r\n| where tostring(properties.essentials.severity) in (\"Sev0\",\"Sev1\")\r\n| summarize CriticalAlerts = count()",
+            "scope": "directory"
+          },
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "${ds}"
+          },
+          "queryType": "Azure Resource Graph",
+          "refId": "A",
+          "subscriptions": []
+        }
+      ],
       "title": "Critical Alerts",
-      "type": "library-panel-ref"
+      "type": "stat"
     },
     {
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "${ds}"
+      },
+      "description": "Active Sev2–Sev4 alerts. Potential issues or degraded conditions.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [
+            {
+              "options": {
+                "0": {
+                  "color": "green",
+                  "index": 0,
+                  "text": "None"
+                }
+              },
+              "type": "value"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "#EAB839",
+                "value": 1
+              },
+              {
+                "color": "semi-dark-orange",
+                "value": 3
+              },
+              {
+                "color": "dark-red",
+                "value": 5
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
       "gridPos": {
         "h": 4,
         "w": 6,
@@ -161,14 +723,94 @@
         "y": 11
       },
       "id": 22,
-      "libraryPanel": {
-        "name": "Warning Alerts",
-        "uid": "efht7lrlyytj4f"
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "horizontal",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
       },
+      "pluginVersion": "12.3.1",
+      "targets": [
+        {
+          "azureMonitor": {
+            "allowedTimeGrainsMs": [],
+            "timeGrain": "auto"
+          },
+          "azureResourceGraph": {
+            "query": "AlertsManagementResources\r\n| where subscriptionId in~ (${sub:singlequote})\r\n| where properties.essentials.monitorCondition =~ \"Fired\"\r\n| where tostring(properties.essentials.severity) in (\"Sev2\",\"Sev3\",\"Sev4\")\r\n| summarize WarningAlerts = dcount(id)",
+            "scope": "directory"
+          },
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "${ds}"
+          },
+          "queryType": "Azure Resource Graph",
+          "refId": "A",
+          "subscriptions": []
+        }
+      ],
       "title": "Warning Alerts",
-      "type": "library-panel-ref"
+      "type": "stat"
     },
     {
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "${ds}"
+      },
+      "description": "How long the oldest active alert has been firing. If this keeps growing, alerts are being ignored. A healthy team keeps this under a few hours.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [
+            {
+              "options": {
+                "0": {
+                  "color": "green",
+                  "index": 0,
+                  "text": "All Clear"
+                }
+              },
+              "type": "value"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "#EAB839",
+                "value": 60
+              },
+              {
+                "color": "semi-dark-orange",
+                "value": 360
+              },
+              {
+                "color": "dark-red",
+                "value": 1440
+              }
+            ]
+          },
+          "unit": "m"
+        },
+        "overrides": []
+      },
       "gridPos": {
         "h": 4,
         "w": 6,
@@ -176,14 +818,71 @@
         "y": 11
       },
       "id": 75,
-      "libraryPanel": {
-        "name": "Oldest Open Alert",
-        "uid": "bfht7m8bniby8b"
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "horizontal",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
       },
+      "pluginVersion": "12.3.1",
+      "targets": [
+        {
+          "azureMonitor": {
+            "allowedTimeGrainsMs": [],
+            "timeGrain": "auto"
+          },
+          "azureResourceGraph": {
+            "query": "AlertsManagementResources\r\n| where subscriptionId in~ (${sub:singlequote})\r\n| where properties.essentials.monitorCondition =~ \"Fired\"\r\n| extend StartTime = todatetime(properties.essentials.startDateTime)\r\n| summarize OldestMinutes = datetime_diff('minute', now(), min(StartTime))\r\n| project OldestMinutes = iff(isnull(OldestMinutes), 0, OldestMinutes)",
+            "scope": "directory"
+          },
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "${ds}"
+          },
+          "queryType": "Azure Resource Graph",
+          "refId": "A",
+          "subscriptions": []
+        }
+      ],
       "title": "Oldest Open Alert",
-      "type": "library-panel-ref"
+      "type": "stat"
     },
     {
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "${ds}"
+      },
+      "description": "Alerts resolved in the last ",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "super-light-green",
+            "mode": "fixed"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
       "gridPos": {
         "h": 4,
         "w": 6,
@@ -191,14 +890,245 @@
         "y": 11
       },
       "id": 24,
-      "libraryPanel": {
-        "name": "Alerts Resolved",
-        "uid": "ffht7mpzbo3r4c"
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "horizontal",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
       },
+      "pluginVersion": "12.3.1",
+      "targets": [
+        {
+          "azureMonitor": {
+            "allowedTimeGrainsMs": [],
+            "timeGrain": "auto"
+          },
+          "azureResourceGraph": {
+            "query": "AlertsManagementResources\r\n| where subscriptionId in~ (${sub:singlequote})\r\n| where properties.essentials.monitorCondition =~ \"Resolved\"\r\n| where todatetime(properties.essentials.lastModifiedDateTime) between ($__timeFrom() .. $__timeTo())\r\n| summarize ResolvedAlerts = count()\r\n//coment",
+            "scope": "directory"
+          },
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "${ds}"
+          },
+          "queryType": "Azure Resource Graph",
+          "refId": "A",
+          "subscriptions": []
+        }
+      ],
       "title": "Alerts Resolved",
-      "type": "library-panel-ref"
+      "type": "stat"
     },
     {
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "${ds}"
+      },
+      "description": "Currently firing alerts with severity, affected resource, and start time.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "footer": {
+              "reducers": []
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Severity"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 80
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "options": {
+                      "Sev0": {
+                        "color": "dark-red",
+                        "index": 0,
+                        "text": "Sev0"
+                      },
+                      "Sev1": {
+                        "color": "red",
+                        "index": 1,
+                        "text": "Sev1"
+                      },
+                      "Sev2": {
+                        "color": "orange",
+                        "index": 2,
+                        "text": "Sev2"
+                      },
+                      "Sev3": {
+                        "color": "#EAB839",
+                        "index": 3,
+                        "text": "Sev3"
+                      },
+                      "Sev4": {
+                        "color": "blue",
+                        "index": 4,
+                        "text": "Sev4"
+                      }
+                    },
+                    "type": "value"
+                  }
+                ]
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "mode": "basic",
+                  "type": "color-background"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "StartTime"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 180
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "TargetResourceType"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 369
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "AlertScope"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 218
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Resource"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 369
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Reason"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 611
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "SeverityLabel"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "options": {
+                      "Critical": {
+                        "color": "dark-red",
+                        "index": 0,
+                        "text": "Critical"
+                      },
+                      "Error": {
+                        "color": "red",
+                        "index": 1,
+                        "text": "Error"
+                      },
+                      "Info": {
+                        "color": "yellow",
+                        "index": 3,
+                        "text": "Info"
+                      },
+                      "Verbose": {
+                        "color": "blue",
+                        "index": 4,
+                        "text": "Verbose"
+                      },
+                      "Warning": {
+                        "color": "orange",
+                        "index": 2,
+                        "text": "Warning"
+                      }
+                    },
+                    "type": "value"
+                  }
+                ]
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "mode": "basic",
+                  "type": "color-background"
+                }
+              }
+            ]
+          }
+        ]
+      },
       "gridPos": {
         "h": 8,
         "w": 24,
@@ -206,14 +1136,159 @@
         "y": 15
       },
       "id": 25,
-      "libraryPanel": {
-        "name": "Active Alerts Table",
-        "uid": "afht7sk00txq8c"
+      "options": {
+        "cellHeight": "sm",
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": false,
+            "displayName": "Severity"
+          }
+        ]
       },
+      "pluginVersion": "12.3.1",
+      "targets": [
+        {
+          "azureMonitor": {
+            "allowedTimeGrainsMs": [],
+            "timeGrain": "auto"
+          },
+          "azureResourceGraph": {
+            "query": "AlertsManagementResources\r\n| where subscriptionId in~ (${sub:singlequote})\r\n| where properties.essentials.monitorCondition =~ \"Fired\"\r\n| where tostring(properties.essentials.severity) in (\"Sev0\",\"Sev1\",\"Sev2\",\"Sev3\",\"Sev4\")\r\n| extend Severity = tostring(properties.essentials.severity)\r\n| extend SeverityLabel = case(\r\n    Severity == \"Sev0\", \"Critical\",\r\n    Severity == \"Sev1\", \"Error\",\r\n    Severity == \"Sev2\", \"Warning\",\r\n    Severity == \"Sev3\", \"Info\",\r\n    Severity == \"Sev4\", \"Verbose\",\r\n    Severity\r\n)\r\n| extend\r\n    MonitorService = tostring(properties.essentials.monitorService),\r\n    TargetResourceType = tostring(properties.essentials.targetResourceType),\r\n    TargetResourceName = tostring(properties.essentials.targetResourceName)\r\n| extend AlertScope = case(\r\n    tolower(TargetResourceType) contains \"virtualmachines\", \"Virtual Machine\",\r\n    tolower(MonitorService) contains \"servicehealth\", \"Service Health\",\r\n    tolower(TargetResourceType) contains \"subscriptions\", \"Subscription\",\r\n    isempty(TargetResourceType) and tolower(MonitorService) contains \"servicehealth\", \"Service Health\",\r\n    \"Other\"\r\n)\r\n| project\r\n    SeverityLabel,\r\n    Severity,\r\n    AlertScope,\r\n    Resource = TargetResourceName,\r\n    Reason = tostring(properties.essentials.description),\r\n    ResourceGroup = tostring(properties.essentials.targetResourceGroup),\r\n    MonitorCondition = tostring(properties.essentials.monitorCondition),\r\n    SignalType = tostring(properties.essentials.signalType),\r\n    MonitorService,\r\n    TargetResourceType,\r\n    StartTime = todatetime(properties.essentials.startDateTime),\r\n    LastModified = todatetime(properties.essentials.lastModifiedDateTime)\r\n| order by StartTime desc",
+            "scope": "directory"
+          },
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "${ds}"
+          },
+          "queryType": "Azure Resource Graph",
+          "refId": "A",
+          "subscriptions": []
+        }
+      ],
       "title": "Active Alerts Table",
-      "type": "library-panel-ref"
+      "type": "table"
     },
     {
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "azure-monitor-oob"
+      },
+      "description": "Alerts resolved in the last 24hrs. Shows what was fixed, when it started and how long it took to resolve.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "footer": {
+              "reducers": []
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Reason"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 686
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "SeverityLabel"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "mode": "basic",
+                  "type": "color-background"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "options": {
+                      "Critical": {
+                        "color": "dark-red",
+                        "index": 1
+                      },
+                      "Error": {
+                        "color": "red",
+                        "index": 4
+                      },
+                      "Info": {
+                        "color": "yellow",
+                        "index": 2
+                      },
+                      "Verbose": {
+                        "color": "blue",
+                        "index": 3
+                      },
+                      "Warning": {
+                        "color": "orange",
+                        "index": 0
+                      }
+                    },
+                    "type": "value"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "StartTime"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 182
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "ResolvedTime"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 164
+              }
+            ]
+          }
+        ]
+      },
       "gridPos": {
         "h": 7,
         "w": 24,
@@ -221,12 +1296,48 @@
         "y": 23
       },
       "id": 76,
-      "libraryPanel": {
-        "name": "Recently Resolved Alerts-table",
-        "uid": "dfht7tiynebcwf"
+      "options": {
+        "cellHeight": "sm",
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": false,
+            "displayName": "ResolvedTime"
+          }
+        ]
       },
+      "pluginVersion": "12.3.1",
+      "targets": [
+        {
+          "azureLogAnalytics": {
+            "dashboardTime": true,
+            "mode": "raw",
+            "query": "",
+            "resources": [
+              "/subscriptions/$sub"
+            ],
+            "resultFormat": "logs",
+            "timeColumn": "TimeGenerated"
+          },
+          "azureMonitor": {
+            "allowedTimeGrainsMs": [],
+            "timeGrain": "auto"
+          },
+          "azureResourceGraph": {
+            "query": "AlertsManagementResources\r\n| where subscriptionId in~ (${sub:singlequote})\r\n| where properties.essentials.monitorCondition =~ \"Resolved\"\r\n| where todatetime(properties.essentials.lastModifiedDateTime) between ($__timeFrom() .. $__timeTo())\r\n| extend Severity = tostring(properties.essentials.severity)\r\n| extend SeverityLabel = case(\r\n    Severity == \"Sev0\", \"Critical\",\r\n    Severity == \"Sev1\", \"Error\",\r\n    Severity == \"Sev2\", \"Warning\",\r\n    Severity == \"Sev3\", \"Info\",\r\n    Severity == \"Sev4\", \"Verbose\",\r\n    Severity\r\n)\r\n| extend StartTime = todatetime(properties.essentials.startDateTime)\r\n| extend ResolvedTime = todatetime(properties.essentials.lastModifiedDateTime)\r\n| extend DurationMin = datetime_diff('minute', ResolvedTime, StartTime)\r\n| extend Duration = case(\r\n    DurationMin < 60, strcat(tostring(DurationMin), 'm'),\r\n    DurationMin < 1440, strcat(tostring(DurationMin / 60), 'h ', tostring(DurationMin % 60), 'm'),\r\n    strcat(tostring(DurationMin / 1440), 'd ', tostring((DurationMin % 1440) / 60), 'h')\r\n)\r\n| extend TargetResourceType = tostring(properties.essentials.targetResourceType)\r\n| extend Category = case(\r\n    tolower(TargetResourceType) contains \"virtualmachines\", \"Virtual Machine\",\r\n    tolower(tostring(properties.essentials.monitorService)) contains \"servicehealth\", \"Service Health\",\r\n    tolower(TargetResourceType) contains \"subscriptions\", \"Subscription\",\r\n    \"Other\"\r\n)\r\n| project\r\n    SeverityLabel,\r\n    Severity,\r\n    Category,\r\n    Resource = tostring(properties.essentials.targetResourceName),\r\n    Reason = tostring(properties.essentials.description),\r\n    ResourceGroup = tostring(properties.essentials.targetResourceGroup),\r\n    Duration,\r\n    StartTime,\r\n    ResolvedTime\r\n| order by ResolvedTime desc",
+            "scope": "directory"
+          },
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "azure-monitor-oob"
+          },
+          "queryType": "Azure Resource Graph",
+          "refId": "A",
+          "subscriptions": []
+        }
+      ],
       "title": "Recently Resolved Alerts",
-      "type": "library-panel-ref"
+      "type": "table"
     },
     {
       "collapsed": false,
@@ -236,70 +1347,359 @@
         "x": 0,
         "y": 30
       },
-      "id": 30,
+      "id": 40,
       "panels": [],
-      "title": "Infrastructure Overview",
+      "title": "Top VMs by Utilization",
       "type": "row"
     },
     {
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "${ds}"
+      },
+      "description": "Top 10 VMs by CPU utilization.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "#EAB839",
+                "value": 70
+              },
+              {
+                "color": "semi-dark-orange",
+                "value": 85
+              },
+              {
+                "color": "dark-red",
+                "value": 95
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
       "gridPos": {
-        "h": 10,
+        "h": 18,
         "w": 6,
         "x": 0,
         "y": 31
       },
-      "id": 31,
-      "libraryPanel": {
-        "name": "CPU %",
-        "uid": "dfht7wm1p3ytcf"
+      "id": 41,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "horizontal",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "limit": 10,
+          "values": true
+        },
+        "showPercentChange": false,
+        "textMode": "value_and_name",
+        "wideLayout": false
       },
-      "title": "CPU %",
-      "type": "library-panel-ref"
+      "pluginVersion": "12.3.1",
+      "targets": [
+        {
+          "azureLogAnalytics": {
+            "dashboardTime": true,
+            "mode": "raw",
+            "query": "let startDateTime = $__timeFrom;\nlet endDateTime = $__timeTo;\nPerf\n| where TimeGenerated between (startDateTime .. endDateTime)\n| where CounterName == \"% Processor Time\"\n| where InstanceName == \"_Total\"\n| extend ComputerId = iff(isempty(_ResourceId), Computer, _ResourceId)\n| summarize AvgCPU = round(avg(CounterValue), 1) by Computer\n| top 10 by AvgCPU desc",
+            "resources": [
+              "/subscriptions/$sub"
+            ],
+            "resultFormat": "logs",
+            "timeColumn": "TimeGenerated"
+          },
+          "azureMonitor": {
+            "allowedTimeGrainsMs": [],
+            "timeGrain": "auto"
+          },
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "${ds}"
+          },
+          "queryType": "Azure Log Analytics",
+          "refId": "A"
+        }
+      ],
+      "title": "Top CPU",
+      "type": "stat"
     },
     {
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "${ds}"
+      },
+      "description": "Top 10 VMs by memory utilization.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": 0
+              },
+              {
+                "color": "#EAB839",
+                "value": 70
+              },
+              {
+                "color": "semi-dark-orange",
+                "value": 85
+              },
+              {
+                "color": "dark-red",
+                "value": 95
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
       "gridPos": {
-        "h": 10,
+        "h": 18,
         "w": 6,
         "x": 6,
         "y": 31
       },
-      "id": 32,
-      "libraryPanel": {
-        "name": "Memory %",
-        "uid": "dfht7x6puuz9cc"
+      "id": 42,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "horizontal",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "limit": 10,
+          "values": true
+        },
+        "showPercentChange": false,
+        "textMode": "value_and_name",
+        "wideLayout": false
       },
-      "title": "Memory %",
-      "type": "library-panel-ref"
+      "pluginVersion": "12.3.1",
+      "targets": [
+        {
+          "azureLogAnalytics": {
+            "dashboardTime": true,
+            "mode": "raw",
+            "query": "let startDateTime = $__timeFrom;\nlet endDateTime = $__timeTo;\nPerf\n| where TimeGenerated between (startDateTime .. endDateTime)\n| where CounterName == \"% Committed Bytes In Use\"\n| summarize AvgMemory = round(avg(CounterValue), 1) by Computer\n| top 10 by AvgMemory desc",
+            "resources": [
+              "/subscriptions/$sub"
+            ],
+            "resultFormat": "logs",
+            "timeColumn": "TimeGenerated"
+          },
+          "azureMonitor": {
+            "allowedTimeGrainsMs": [],
+            "timeGrain": "auto"
+          },
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "${ds}"
+          },
+          "queryType": "Azure Log Analytics",
+          "refId": "A"
+        }
+      ],
+      "title": "Top Memory",
+      "type": "stat"
     },
     {
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "${ds}"
+      },
+      "description": "Top 10 VMs by disk space used.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "super-light-purple",
+                "value": 0
+              },
+              {
+                "color": "#EAB839",
+                "value": 75
+              },
+              {
+                "color": "semi-dark-orange",
+                "value": 85
+              },
+              {
+                "color": "dark-red",
+                "value": 95
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
       "gridPos": {
-        "h": 10,
+        "h": 18,
         "w": 6,
         "x": 12,
         "y": 31
       },
-      "id": 33,
-      "libraryPanel": {
-        "name": "Disk Used %",
-        "uid": "bfht7xqb171fke"
+      "id": 43,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "horizontal",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "limit": 10,
+          "values": true
+        },
+        "showPercentChange": false,
+        "textMode": "value_and_name",
+        "wideLayout": false
       },
-      "title": "Disk Used %",
-      "type": "library-panel-ref"
+      "pluginVersion": "12.3.1",
+      "targets": [
+        {
+          "azureLogAnalytics": {
+            "dashboardTime": true,
+            "mode": "raw",
+            "query": "let startDateTime = $__timeFrom;\nlet endDateTime = $__timeTo;\nPerf\n| where TimeGenerated between (startDateTime .. endDateTime)\n| where ObjectName == \"LogicalDisk\"\n| where CounterName == \"% Free Space\"\n| extend UsedPct = 100.0 - CounterValue\n| summarize AvgDisk = round(avg(UsedPct), 1) by Computer\n| top 10 by AvgDisk desc",
+            "resources": [
+              "/subscriptions/$sub"
+            ],
+            "resultFormat": "logs",
+            "timeColumn": "TimeGenerated"
+          },
+          "azureMonitor": {
+            "allowedTimeGrainsMs": [],
+            "timeGrain": "auto"
+          },
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "${ds}"
+          },
+          "queryType": "Azure Log Analytics",
+          "refId": "A"
+        }
+      ],
+      "title": "Top Disk",
+      "type": "stat"
     },
     {
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "${ds}"
+      },
+      "description": "Top 10 VMs by network throughput.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "#0084ff",
+            "mode": "fixed"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#0084ff",
+                "value": 0
+              }
+            ]
+          },
+          "unit": "MBs"
+        },
+        "overrides": []
+      },
       "gridPos": {
-        "h": 10,
+        "h": 18,
         "w": 6,
         "x": 18,
         "y": 31
       },
-      "id": 34,
-      "libraryPanel": {
-        "name": "Network",
-        "uid": "afht7ydhi9vy8d"
+      "id": 44,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "horizontal",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "limit": 10,
+          "values": true
+        },
+        "showPercentChange": false,
+        "textMode": "value_and_name",
+        "wideLayout": false
       },
-      "title": "Network",
-      "type": "library-panel-ref"
+      "pluginVersion": "12.3.1",
+      "targets": [
+        {
+          "azureLogAnalytics": {
+            "dashboardTime": true,
+            "mode": "raw",
+            "query": "let startDateTime = $__timeFrom;\nlet endDateTime = $__timeTo;\nPerf\n| where TimeGenerated between (startDateTime .. endDateTime)\n| where CounterName == \"Bytes Total/sec\"\n| summarize AvgNet = round(avg(CounterValue) / 1024 / 1024, 2) by Computer\n| top 10 by AvgNet desc",
+            "resources": [
+              "/subscriptions/$sub"
+            ],
+            "resultFormat": "logs",
+            "timeColumn": "TimeGenerated"
+          },
+          "azureMonitor": {
+            "allowedTimeGrainsMs": [],
+            "timeGrain": "auto"
+          },
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "${ds}"
+          },
+          "queryType": "Azure Log Analytics",
+          "refId": "A"
+        }
+      ],
+      "title": "Top Network",
+      "type": "stat"
     },
     {
       "collapsed": false,
@@ -307,7 +1707,510 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 41
+        "y": 49
+      },
+      "id": 30,
+      "panels": [],
+      "title": "Infrastructure Overview",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "${ds}"
+      },
+      "description": "Average CPU utilization across all monitored VMs.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic",
+            "seriesBy": "last"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisGridShow": true,
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "always",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "area"
+            }
+          },
+          "mappings": [],
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "#EAB839",
+                "value": 70
+              },
+              {
+                "color": "semi-dark-orange",
+                "value": 85
+              },
+              {
+                "color": "dark-red",
+                "value": 95
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 11,
+        "w": 12,
+        "x": 0,
+        "y": 50
+      },
+      "id": 31,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "pluginVersion": "12.3.1",
+      "targets": [
+        {
+          "azureLogAnalytics": {
+            "dashboardTime": true,
+            "mode": "raw",
+            "query": "Perf\r\n| where CounterName == \"% Processor Time\"\r\n| where InstanceName == \"_Total\" or ObjectName == \"Processor\"\r\n| summarize AvgCPU = avg(CounterValue) by bin(TimeGenerated, 5m), Computer\r\n| order by TimeGenerated asc",
+            "resources": [
+              "/subscriptions/$sub"
+            ],
+            "resultFormat": "time_series",
+            "timeColumn": "TimeGenerated"
+          },
+          "azureMonitor": {
+            "allowedTimeGrainsMs": [],
+            "timeGrain": "auto"
+          },
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "${ds}"
+          },
+          "queryType": "Azure Log Analytics",
+          "refId": "A"
+        }
+      ],
+      "title": "CPU %",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "${ds}"
+      },
+      "description": "Average disk space used across all logical disks.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "text",
+            "mode": "palette-classic",
+            "seriesBy": "last"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineStyle": {
+              "fill": "solid"
+            },
+            "lineWidth": 3,
+            "pointSize": 1,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "always",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "area"
+            }
+          },
+          "mappings": [],
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "super-light-purple",
+                "value": 0
+              },
+              {
+                "color": "#EAB839",
+                "value": 75
+              },
+              {
+                "color": "semi-dark-orange",
+                "value": 85
+              },
+              {
+                "color": "dark-red",
+                "value": 95
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 11,
+        "w": 12,
+        "x": 12,
+        "y": 50
+      },
+      "id": 33,
+      "options": {
+        "legend": {
+          "calcs": [
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "pluginVersion": "12.3.1",
+      "targets": [
+        {
+          "azureLogAnalytics": {
+            "dashboardTime": true,
+            "mode": "raw",
+            "query": "Perf\r\n| where ObjectName == \"LogicalDisk\"\r\n| where CounterName == \"% Free Space\"\r\n| extend UsedPct = 100.0 - CounterValue\r\n| summarize DiskUsedPct = avg(UsedPct) by bin(TimeGenerated, 5m), Computer\r\n| order by TimeGenerated asc",
+            "resources": [
+              "/subscriptions/$sub"
+            ],
+            "resultFormat": "time_series",
+            "timeColumn": "TimeGenerated"
+          },
+          "azureMonitor": {
+            "allowedTimeGrainsMs": [],
+            "timeGrain": "auto"
+          },
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "${ds}"
+          },
+          "queryType": "Azure Log Analytics",
+          "refId": "A"
+        }
+      ],
+      "title": "Disk Used %",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "${ds}"
+      },
+      "description": "Average committed memory bytes in use across all VMs.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic",
+            "seriesBy": "last"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineWidth": 1,
+            "pointSize": 6,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "area"
+            }
+          },
+          "mappings": [],
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": 0
+              },
+              {
+                "color": "#EAB839",
+                "value": 70
+              },
+              {
+                "color": "semi-dark-orange",
+                "value": 85
+              },
+              {
+                "color": "dark-red",
+                "value": 95
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 0,
+        "y": 61
+      },
+      "id": 32,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "pluginVersion": "12.3.1",
+      "targets": [
+        {
+          "azureLogAnalytics": {
+            "dashboardTime": true,
+            "mode": "raw",
+            "query": "Perf\r\n| where CounterName == \"% Committed Bytes In Use\"\r\n| summarize AvgMemory = avg(CounterValue) by bin(TimeGenerated, 5m), Computer\r\n| order by TimeGenerated asc",
+            "resources": [
+              "/subscriptions/$sub"
+            ],
+            "resultFormat": "time_series",
+            "timeColumn": "TimeGenerated"
+          },
+          "azureMonitor": {
+            "allowedTimeGrainsMs": [],
+            "timeGrain": "auto"
+          },
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "${ds}"
+          },
+          "queryType": "Azure Log Analytics",
+          "refId": "A"
+        }
+      ],
+      "title": "Memory %",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "${ds}"
+      },
+      "description": "Average network throughput across all monitored machines.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "#0084ff",
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "opacity",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "always",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          },
+          "unit": "MBs"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 12,
+        "y": 61
+      },
+      "id": 34,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "pluginVersion": "12.3.1",
+      "targets": [
+        {
+          "azureLogAnalytics": {
+            "dashboardTime": true,
+            "mode": "raw",
+            "query": "Perf\r\n| where CounterName == \"Bytes Total/sec\"\r\n| summarize NetworkMBps = avg(CounterValue) / 1024 / 1024 by bin(TimeGenerated, 5m), Computer\r\n| order by TimeGenerated asc",
+            "resources": [
+              "/subscriptions/$sub"
+            ],
+            "resultFormat": "time_series",
+            "timeColumn": "TimeGenerated"
+          },
+          "azureMonitor": {
+            "allowedTimeGrainsMs": [],
+            "timeGrain": "auto"
+          },
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "${ds}"
+          },
+          "queryType": "Azure Log Analytics",
+          "refId": "A"
+        }
+      ],
+      "title": "Network",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 71
       },
       "id": 60,
       "panels": [],
@@ -315,49 +2218,325 @@
       "type": "row"
     },
     {
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "${ds}"
+      },
+      "description": "Heartbeat signal volume over time. Drops indicate machines going offline or agents failing.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "#73bf69",
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 6,
+            "gradientMode": "opacity",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 7,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
       "gridPos": {
         "h": 9,
         "w": 8,
         "x": 0,
-        "y": 42
+        "y": 72
       },
       "id": 61,
-      "libraryPanel": {
-        "name": "Heartbeat Timeline",
-        "uid": "bfht80m5kgdfkb"
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
       },
+      "pluginVersion": "12.3.1",
+      "targets": [
+        {
+          "azureLogAnalytics": {
+            "dashboardTime": true,
+            "mode": "raw",
+            "query": "Heartbeat\r\n| summarize Heartbeats = count() by bin(TimeGenerated, 5m),Computer\r\n| order by TimeGenerated asc",
+            "resources": [
+              "/subscriptions/$sub"
+            ],
+            "resultFormat": "time_series",
+            "timeColumn": "TimeGenerated"
+          },
+          "azureMonitor": {
+            "allowedTimeGrainsMs": [],
+            "timeGrain": "auto"
+          },
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "${ds}"
+          },
+          "queryType": "Azure Log Analytics",
+          "refId": "A"
+        }
+      ],
       "title": "Heartbeat Timeline",
-      "type": "library-panel-ref"
+      "type": "timeseries"
     },
     {
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "${ds}"
+      },
+      "description": "Error-level system events over time. Spikes here often correlate with service failures, unexpected reboots, or application crashes. Quiet is good.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "dark-red",
+            "mode": "fixed"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 25,
+            "gradientMode": "opacity",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
       "gridPos": {
         "h": 9,
         "w": 8,
         "x": 8,
-        "y": 42
+        "y": 72
       },
       "id": 77,
-      "libraryPanel": {
-        "name": "Error Events",
-        "uid": "afht815sm7oxsa"
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
       },
+      "pluginVersion": "12.3.1",
+      "targets": [
+        {
+          "azureLogAnalytics": {
+            "dashboardTime": true,
+            "mode": "raw",
+            "query": "Event\r\n| where EventLevelName == \"Error\"\r\n| summarize Errors = count() by bin(TimeGenerated, 5m)\r\n| order by TimeGenerated asc",
+            "resources": [
+              "/subscriptions/$sub"
+            ],
+            "resultFormat": "logs",
+            "timeColumn": "TimeGenerated"
+          },
+          "azureMonitor": {
+            "allowedTimeGrainsMs": [],
+            "timeGrain": "auto"
+          },
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "${ds}"
+          },
+          "queryType": "Azure Log Analytics",
+          "refId": "A"
+        }
+      ],
       "title": "Error Events",
-      "type": "library-panel-ref"
+      "type": "timeseries"
     },
     {
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "${ds}"
+      },
+      "description": "Volume of performance metrics being collected. A steady flow means monitoring is healthy. If this drops to zero, data collection is broken and every other panel on this dashboard goes blind.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "#8a74e8",
+            "mode": "fixed"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 25,
+            "gradientMode": "opacity",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
       "gridPos": {
         "h": 9,
         "w": 8,
         "x": 16,
-        "y": 42
+        "y": 72
       },
       "id": 78,
-      "libraryPanel": {
-        "name": "Monitoring Data Flow",
-        "uid": "bfht81ulkeyv4d"
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
       },
+      "pluginVersion": "12.3.1",
+      "targets": [
+        {
+          "azureLogAnalytics": {
+            "dashboardTime": true,
+            "mode": "raw",
+            "query": "InsightsMetrics\r\n| summarize Metrics = count() by bin(TimeGenerated, 5m)\r\n| order by TimeGenerated asc",
+            "resources": [
+              "/subscriptions/$sub"
+            ],
+            "resultFormat": "time_series",
+            "timeColumn": "TimeGenerated"
+          },
+          "azureMonitor": {
+            "allowedTimeGrainsMs": [],
+            "timeGrain": "auto"
+          },
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "${ds}"
+          },
+          "queryType": "Azure Log Analytics",
+          "refId": "A"
+        }
+      ],
       "title": "Monitoring Data Flow",
-      "type": "library-panel-ref"
+      "type": "timeseries"
     },
     {
       "collapsed": false,
@@ -365,115 +2544,441 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 51
-      },
-      "id": 40,
-      "panels": [],
-      "title": "Top VMs by Utilization",
-      "type": "row"
-    },
-    {
-      "gridPos": {
-        "h": 10,
-        "w": 6,
-        "x": 0,
-        "y": 52
-      },
-      "id": 41,
-      "libraryPanel": {
-        "name": "Top CPU",
-        "uid": "dfht85afygfeof"
-      },
-      "title": "Top CPU",
-      "type": "library-panel-ref"
-    },
-    {
-      "gridPos": {
-        "h": 10,
-        "w": 6,
-        "x": 6,
-        "y": 52
-      },
-      "id": 42,
-      "libraryPanel": {
-        "name": "Top Memory",
-        "uid": "cfht85s37mt4wb"
-      },
-      "title": "Top Memory",
-      "type": "library-panel-ref"
-    },
-    {
-      "gridPos": {
-        "h": 10,
-        "w": 6,
-        "x": 12,
-        "y": 52
-      },
-      "id": 43,
-      "libraryPanel": {
-        "name": "Top Disk",
-        "uid": "ffht86d2tf2m8a"
-      },
-      "title": "Top Disk",
-      "type": "library-panel-ref"
-    },
-    {
-      "gridPos": {
-        "h": 10,
-        "w": 6,
-        "x": 18,
-        "y": 52
-      },
-      "id": 44,
-      "libraryPanel": {
-        "name": "Top Network",
-        "uid": "afht871yjiadce"
-      },
-      "title": "Top Network",
-      "type": "library-panel-ref"
-    },
-    {
-      "collapsed": false,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 62
+        "y": 81
       },
       "id": 50,
       "panels": [],
-      "title": "VM Detail — CPU & Memory",
+      "title": "VM Detail CPU & Memory",
       "type": "row"
     },
     {
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "${ds}"
+      },
+      "description": "Detailed CPU utilization statistics per VM with percentile breakdown.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "footer": {
+              "reducers": []
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "#EAB839",
+                "value": 70
+              },
+              {
+                "color": "dark-red",
+                "value": 90
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Computer"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "targetBlank": true,
+                    "title": "Open in Azure Portal",
+                    "url": "https://ms.portal.azure.com/#@${__data.fields[\"Tenant ID\"]}/resource/subscriptions/${sub}/resourcegroups/${__data.fields[\"Resource Group\"]}/providers/microsoft.compute/${__data.fields.Type}/${__data.fields[\"Resource Name\"]}/infrainsights"
+                  }
+                ]
+              },
+              {
+                "id": "custom.width",
+                "value": 200
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Average"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 97
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "P50th"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 84
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "P90th"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 105
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "P95th"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 110
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Max"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 97
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Tenant ID"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 285
+              }
+            ]
+          }
+        ]
+      },
       "gridPos": {
         "h": 12,
         "w": 12,
         "x": 0,
-        "y": 63
+        "y": 82
       },
       "id": 51,
-      "libraryPanel": {
-        "name": "CPU Utilization Statistics",
-        "uid": "ffht882i019tsd"
+      "options": {
+        "cellHeight": "sm",
+        "showHeader": true,
+        "sortBy": []
       },
+      "pluginVersion": "12.3.1",
+      "targets": [
+        {
+          "azureLogAnalytics": {
+            "dashboardTime": false,
+            "mode": "raw",
+            "query": "let startDateTime = $__timeFrom;\r\nlet endDateTime = $__timeTo;\r\nlet trendBinSize = 5m;\r\nlet maxResultCount = 10;\r\nlet summaryPerComputer = Perf\r\n| where TimeGenerated between (startDateTime .. endDateTime)\r\n| where CounterName == \"% Processor Time\"\r\n| where InstanceName == \"_Total\"\r\n| extend ComputerId = iff(isempty(_ResourceId), Computer, _ResourceId)\r\n| summarize Average = round(avg(CounterValue), 2), Max = round(max(CounterValue), 2), P50th = round(percentile(CounterValue, 50), 2), P90th = round(percentile(CounterValue, 90), 2), P95th = round(percentile(CounterValue, 95), 2) by ComputerId, Computer, _ResourceId\r\n| top maxResultCount by Average desc;\r\nsummaryPerComputer\r\n| parse tolower(_ResourceId) with * \"resourcegroups/\" resourceGroup \"/providers/microsoft.compute/\" typeVM \"/\" nameVM\r\n| project Computer, resourceGroup, Average, P50th, P90th, P95th, Max, Type = typeVM, Name = nameVM",
+            "resources": [
+              "/subscriptions/$sub"
+            ],
+            "resultFormat": "table"
+          },
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "${ds}"
+          },
+          "queryType": "Azure Log Analytics",
+          "refId": "A",
+          "subscription": ""
+        },
+        {
+          "azureResourceGraph": {
+            "query": "resources\r\n| where tolower(type) contains \"virtualmachines\" and resourceGroup in~ ($rg) \r\n| project Name = tolower(name), tenantId, resourceGroup"
+          },
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "${ds}"
+          },
+          "hide": false,
+          "queryType": "Azure Resource Graph",
+          "refId": "B",
+          "subscription": "",
+          "subscriptions": [
+            "$sub"
+          ]
+        }
+      ],
       "title": "CPU Utilization Statistics",
-      "type": "library-panel-ref"
+      "transformations": [
+        {
+          "id": "merge",
+          "options": {}
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "NodeId": true,
+              "NodeProps": true,
+              "ResourceId": true
+            },
+            "indexByName": {
+              "Average": 2,
+              "Computer": 0,
+              "Max": 6,
+              "Name": 8,
+              "P50th": 3,
+              "P90th": 4,
+              "P95th": 5,
+              "Type": 7,
+              "resourceGroup": 1,
+              "tenantId": 9
+            },
+            "renameByName": {
+              "Name": "Resource Name",
+              "resourceGroup": "Resource Group",
+              "tenantId": "Tenant ID"
+            }
+          }
+        },
+        {
+          "id": "filterByValue",
+          "options": {
+            "filters": [
+              {
+                "config": {
+                  "id": "isNotNull",
+                  "options": {}
+                },
+                "fieldName": "Computer"
+              }
+            ],
+            "match": "all",
+            "type": "include"
+          }
+        }
+      ],
+      "type": "table"
     },
     {
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "${ds}"
+      },
+      "description": "Detailed memory utilization statistics per VM with percentile breakdown.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "footer": {
+              "reducers": []
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "#EAB839",
+                "value": 70
+              },
+              {
+                "color": "dark-red",
+                "value": 90
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Computer"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "targetBlank": true,
+                    "title": "Open in Azure Portal",
+                    "url": "https://ms.portal.azure.com/#@${__data.fields[\"Tenant ID\"]}/resource/subscriptions/${sub}/resourcegroups/${__data.fields[\"Resource Group\"]}/providers/microsoft.compute/${__data.fields.Type}/${__data.fields[\"Resource Name\"]}/infrainsights"
+                  }
+                ]
+              },
+              {
+                "id": "custom.width",
+                "value": 206
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Average"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 97
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Max"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 97
+              }
+            ]
+          }
+        ]
+      },
       "gridPos": {
         "h": 12,
         "w": 12,
         "x": 12,
-        "y": 63
+        "y": 82
       },
       "id": 52,
-      "libraryPanel": {
-        "name": "Memory Utilization Statistics",
-        "uid": "afht88na1mlmoa"
+      "options": {
+        "cellHeight": "sm",
+        "showHeader": true,
+        "sortBy": []
       },
+      "pluginVersion": "12.3.1",
+      "targets": [
+        {
+          "azureLogAnalytics": {
+            "dashboardTime": false,
+            "mode": "raw",
+            "query": "let startDateTime = $__timeFrom;\r\nlet endDateTime = $__timeTo;\r\nlet maxResultCount = 10;\r\nPerf\r\n| where TimeGenerated between (startDateTime .. endDateTime)\r\n| where CounterName == \"% Committed Bytes In Use\"\r\n| extend ComputerId = iff(isempty(_ResourceId), Computer, _ResourceId)\r\n| summarize Average = round(avg(CounterValue), 2), Max = round(max(CounterValue), 2), P50th = round(percentile(CounterValue, 50), 2), P90th = round(percentile(CounterValue, 90), 2), P95th = round(percentile(CounterValue, 95), 2) by ComputerId, Computer, _ResourceId\r\n| top maxResultCount by Average desc\r\n| parse tolower(_ResourceId) with * \"resourcegroups/\" resourceGroup \"/providers/microsoft.compute/\" typeVM \"/\" nameVM\r\n| project Computer, resourceGroup, Average, P50th, P90th, P95th, Max, Type = typeVM, Name = nameVM",
+            "resources": [
+              "/subscriptions/$sub"
+            ],
+            "resultFormat": "table"
+          },
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "${ds}"
+          },
+          "queryType": "Azure Log Analytics",
+          "refId": "A",
+          "subscription": ""
+        },
+        {
+          "azureResourceGraph": {
+            "query": "resources\r\n| where tolower(type) contains \"virtualmachines\" and resourceGroup in~ ($rg) \r\n| project Name = tolower(name), tenantId, resourceGroup"
+          },
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "${ds}"
+          },
+          "hide": false,
+          "queryType": "Azure Resource Graph",
+          "refId": "B",
+          "subscription": "",
+          "subscriptions": [
+            "$sub"
+          ]
+        }
+      ],
       "title": "Memory Utilization Statistics",
-      "type": "library-panel-ref"
+      "transformations": [
+        {
+          "id": "merge",
+          "options": {}
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "ComputerId": true,
+              "NodeId": true,
+              "NodeProps": true,
+              "ResourceId": true
+            },
+            "indexByName": {
+              "Average": 2,
+              "Computer": 0,
+              "Max": 6,
+              "Name": 8,
+              "P50th": 3,
+              "P90th": 4,
+              "P95th": 5,
+              "Type": 7,
+              "resourceGroup": 1,
+              "tenantId": 9
+            },
+            "renameByName": {
+              "Name": "Resource Name",
+              "resourceGroup": "Resource Group",
+              "tenantId": "Tenant ID"
+            }
+          }
+        },
+        {
+          "id": "filterByValue",
+          "options": {
+            "filters": [
+              {
+                "config": {
+                  "id": "isNotNull",
+                  "options": {}
+                },
+                "fieldName": "Computer"
+              }
+            ],
+            "match": "all",
+            "type": "include"
+          }
+        }
+      ],
+      "type": "table"
     },
     {
       "collapsed": false,
@@ -481,42 +2986,306 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 75
+        "y": 94
       },
       "id": 55,
       "panels": [],
-      "title": "VM Detail — Disk & Network",
+      "title": "VM Detail Disk & Network",
       "type": "row"
     },
     {
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "${ds}"
+      },
+      "description": "Detailed disk space statistics per VM.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "footer": {
+              "reducers": []
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "#EAB839",
+                "value": 75
+              },
+              {
+                "color": "dark-red",
+                "value": 90
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Computer"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "targetBlank": true,
+                    "title": "Open in Azure Portal",
+                    "url": "https://ms.portal.azure.com/#@${__data.fields[\"Tenant ID\"]}/resource/subscriptions/${sub}/resourcegroups/${__data.fields[\"Resource Group\"]}/providers/microsoft.compute/${__data.fields.Type}/${__data.fields[\"Resource Name\"]}/infrainsights"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
       "gridPos": {
         "h": 12,
         "w": 12,
         "x": 0,
-        "y": 76
+        "y": 95
       },
       "id": 56,
-      "libraryPanel": {
-        "name": "Disk Space Statistics",
-        "uid": "cfht89cnvhblsc"
+      "options": {
+        "cellHeight": "sm",
+        "showHeader": true,
+        "sortBy": []
       },
+      "pluginVersion": "12.3.1",
+      "targets": [
+        {
+          "azureLogAnalytics": {
+            "dashboardTime": false,
+            "mode": "raw",
+            "query": "let startDateTime = $__timeFrom;\nlet endDateTime = $__timeTo;\nlet maxResultCount = 10;\nInsightsMetrics\n| where TimeGenerated between (startDateTime .. endDateTime)\n| where Origin == 'vm.azm.ms' and (Namespace == 'LogicalDisk' and Name == 'FreeSpaceMB')\n| extend ComputerId = iff(isempty(_ResourceId), Computer, _ResourceId)\n| extend Tags = todynamic(Tags)\n| extend Total = todouble(Tags['vm.azm.ms/diskSizeMB']), MountId = tostring(Tags['vm.azm.ms/mountId'])\n| extend Val = (100.0 - (Val * 100.0)/Total)\n| summarize Average = round(avg(Val), 2), Max = round(max(Val), 2), P50th = round(percentile(Val, 50), 2), P90th = round(percentile(Val, 90), 2), P95th = round(percentile(Val, 95), 2) by MountId, ComputerId, Computer, _ResourceId\n| top maxResultCount by Average desc\n| parse tolower(_ResourceId) with * \"resourcegroups/\" resourceGroup \"/providers/microsoft.compute/\" typeVM \"/\" nameVM\n| project Computer, resourceGroup, MountId, Average, P50th, P90th, P95th, Max, Type = typeVM, Name = nameVM",
+            "resources": [
+              "/subscriptions/$sub"
+            ],
+            "resultFormat": "table"
+          },
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "${ds}"
+          },
+          "queryType": "Azure Log Analytics",
+          "refId": "A",
+          "subscription": ""
+        },
+        {
+          "azureResourceGraph": {
+            "query": "resources\r\n| where tolower(type) contains \"virtualmachines\" and resourceGroup in~ ($rg) \r\n| project Name = tolower(name), tenantId, resourceGroup"
+          },
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "${ds}"
+          },
+          "hide": false,
+          "queryType": "Azure Resource Graph",
+          "refId": "B",
+          "subscription": "",
+          "subscriptions": [
+            "$sub"
+          ]
+        }
+      ],
       "title": "Disk Space Statistics",
-      "type": "library-panel-ref"
+      "transformations": [
+        {
+          "id": "merge",
+          "options": {}
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "ComputerId": true,
+              "NodeId": true,
+              "NodeProps": true,
+              "ResourceId": true
+            },
+            "renameByName": {
+              "Name": "Resource Name",
+              "resourceGroup": "Resource Group",
+              "tenantId": "Tenant ID"
+            }
+          }
+        },
+        {
+          "id": "filterByValue",
+          "options": {
+            "filters": [
+              {
+                "config": {
+                  "id": "isNotNull",
+                  "options": {}
+                },
+                "fieldName": "Computer"
+              }
+            ],
+            "match": "all",
+            "type": "include"
+          }
+        }
+      ],
+      "type": "table"
     },
     {
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "${ds}"
+      },
+      "description": "Detailed network receive statistics per VM.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "footer": {
+              "reducers": []
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Computer"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "targetBlank": true,
+                    "title": "Open in Azure Portal",
+                    "url": "https://ms.portal.azure.com/#@${__data.fields[\"Tenant ID\"]}/resource/subscriptions/${sub}/resourcegroups/${__data.fields[\"Resource Group\"]}/providers/microsoft.compute/${__data.fields.Type}/${__data.fields[\"Resource Name\"]}/infrainsights"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
       "gridPos": {
         "h": 12,
         "w": 12,
         "x": 12,
-        "y": 76
+        "y": 95
       },
       "id": 57,
-      "libraryPanel": {
-        "name": "Network Receive Statistics (MB/s)",
-        "uid": "bfht89wi9xvr4e"
+      "options": {
+        "cellHeight": "sm",
+        "showHeader": true,
+        "sortBy": []
       },
+      "pluginVersion": "12.3.1",
+      "targets": [
+        {
+          "azureLogAnalytics": {
+            "dashboardTime": false,
+            "mode": "raw",
+            "query": "let startDateTime = $__timeFrom;\nlet endDateTime = $__timeTo;\nlet maxResultCount = 10;\nInsightsMetrics\n| where TimeGenerated between (startDateTime .. endDateTime)\n| where Origin == 'vm.azm.ms' and (Namespace == 'Network' and Name == 'ReadBytesPerSecond')\n| extend ComputerId = iff(isempty(_ResourceId), Computer, _ResourceId)\n| summarize Average = round(avg(Val)/1024/1024, 3), Max = round(max(Val)/1024/1024, 3), P50th = round(percentile(Val, 50)/1024/1024, 3), P90th = round(percentile(Val, 90)/1024/1024, 3), P95th = round(percentile(Val, 95)/1024/1024, 3) by ComputerId, Computer, _ResourceId\n| top maxResultCount by Average desc\n| parse tolower(_ResourceId) with * \"resourcegroups/\" resourceGroup \"/providers/microsoft.compute/\" typeVM \"/\" nameVM\n| project Computer, resourceGroup, Average, P50th, P90th, P95th, Max, Type = typeVM, Name = nameVM",
+            "resources": [
+              "/subscriptions/$sub"
+            ],
+            "resultFormat": "table"
+          },
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "${ds}"
+          },
+          "queryType": "Azure Log Analytics",
+          "refId": "A",
+          "subscription": ""
+        },
+        {
+          "azureResourceGraph": {
+            "query": "resources\r\n| where tolower(type) contains \"virtualmachines\" and resourceGroup in~ ($rg) \r\n| project Name = tolower(name), tenantId, resourceGroup"
+          },
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "${ds}"
+          },
+          "hide": false,
+          "queryType": "Azure Resource Graph",
+          "refId": "B",
+          "subscription": "",
+          "subscriptions": [
+            "$sub"
+          ]
+        }
+      ],
       "title": "Network Receive Statistics (MB/s)",
-      "type": "library-panel-ref"
+      "transformations": [
+        {
+          "id": "merge",
+          "options": {}
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "ComputerId": true,
+              "NodeId": true,
+              "NodeProps": true,
+              "ResourceId": true
+            },
+            "renameByName": {
+              "Name": "Resource Name",
+              "resourceGroup": "Resource Group",
+              "tenantId": "Tenant ID"
+            }
+          }
+        },
+        {
+          "id": "filterByValue",
+          "options": {
+            "filters": [
+              {
+                "config": {
+                  "id": "isNotNull",
+                  "options": {}
+                },
+                "fieldName": "Computer"
+              }
+            ],
+            "match": "all",
+            "type": "include"
+          }
+        }
+      ],
+      "type": "table"
     },
     {
       "collapsed": false,
@@ -524,7 +3293,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 88
+        "y": 107
       },
       "id": 70,
       "panels": [],
@@ -532,29 +3301,97 @@
       "type": "row"
     },
     {
+      "datasource": {
+        "type": "grafana-azure-monitor-datasource",
+        "uid": "${ds}"
+      },
+      "description": "All Azure resources in the selected subscription.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "footer": {
+              "reducers": []
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "ResourceName"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 544
+              }
+            ]
+          }
+        ]
+      },
       "gridPos": {
         "h": 12,
         "w": 24,
         "x": 0,
-        "y": 89
+        "y": 108
       },
       "id": 71,
-      "libraryPanel": {
-        "name": "All Monitored Resources",
-        "uid": "bfht8afxa0z5se"
+      "options": {
+        "cellHeight": "sm",
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": true,
+            "displayName": "Region"
+          }
+        ]
       },
+      "pluginVersion": "12.3.1",
+      "targets": [
+        {
+          "azureMonitor": {
+            "allowedTimeGrainsMs": [],
+            "timeGrain": "auto"
+          },
+          "azureResourceGraph": {
+            "query": "Resources\r\n| where subscriptionId == ${sub:singlequote}\r\n| project\r\n    ResourceName = name,\r\n    ResourceType = type,\r\n    ResourceGroup = resourceGroup,\r\n    Region = location\r\n| order by ResourceGroup asc",
+            "scope": "directory"
+          },
+          "datasource": {
+            "type": "grafana-azure-monitor-datasource",
+            "uid": "${ds}"
+          },
+          "queryType": "Azure Resource Graph",
+          "refId": "A",
+          "subscriptions": []
+        }
+      ],
       "title": "All Monitored Resources",
-      "type": "library-panel-ref"
+      "type": "table"
     }
   ],
   "preload": false,
   "refresh": "5m",
   "schemaVersion": 42,
-  "tags": [
-    "Client-Overview",
-    "Client",
-    "shared"
-  ],
+  "tags": [],
   "templating": {
     "list": [
       {
@@ -576,8 +3413,8 @@
         "allValue": "\"\"",
         "allowCustomValue": false,
         "current": {
-          "text": "Shionogi",
-          "value": "64ede6fc-b18b-44a9-a687-bb1ee3eca66f"
+          "text": "Biogen-Prod",
+          "value": "d5d8395f-a77e-4e91-8c2a-98012a664a30"
         },
         "datasource": {
           "type": "grafana-azure-monitor-datasource",
@@ -603,30 +3440,73 @@
         "type": "query"
       },
       {
-        "allowCustomValue": false,
+        "allowCustomValue": true,
         "current": {
-          "text": "All",
-          "value": "$__all"
+          "text": "Prod",
+          "value": "Prod"
+        },
+        "description": "Categorizes resources groups using resource graph ",
+        "name": "category",
+        "options": [
+          {
+            "selected": false,
+            "text": "All",
+            "value": "All"
+          },
+          {
+            "selected": true,
+            "text": "Prod",
+            "value": "Prod"
+          },
+          {
+            "selected": false,
+            "text": "Client Facing",
+            "value": "Client Facing"
+          },
+          {
+            "selected": false,
+            "text": "Nonclient Facing",
+            "value": "Nonclient Facing"
+          }
+        ],
+        "query": "All,Prod,Client Facing,Nonclient Facing",
+        "type": "custom"
+      },
+      {
+        "allowCustomValue": true,
+        "current": {
+          "text": [],
+          "value": []
         },
         "datasource": {
           "type": "grafana-azure-monitor-datasource",
           "uid": "${ds}"
         },
         "definition": "",
-        "hide": 2,
-        "includeAll": true,
+        "description": "Resource Group of subscriptions",
+        "includeAll": false,
         "label": "Resource Group(s)",
+        "multi": true,
         "name": "rg",
         "options": [],
         "query": {
+          "azureLogAnalytics": {
+            "query": ""
+          },
+          "azureResourceGraph": {
+            "query": "resourcecontainers\r\n| where type == \"microsoft.resources/subscriptions/resourcegroups\"\r\n| extend rg = tolower(name)\r\n| where\r\n    (\"$category\" == \"All\") or\r\n    (\"$category\" == \"Prod\" and rg matches regex @\"(^|[-_])(prod|production)([-_]|$)\") or\r\n    (\"$category\" == \"Client Facing\" and rg matches regex @\"(^|[-_])(dev|development|uat|qa|test|tst|stage|staging|prod|production)([-_]|$)\") or\r\n    (\"$category\" == \"Nonclient Facing\" and not(rg matches regex @\"(^|[-_])(dev|development|uat|qa|test|tst|stage|staging|prod|production)([-_]|$)\"))\r\n| project name\r\n| order by name asc",
+            "scope": "subscription"
+          },
           "grafanaTemplateVariableFn": {
             "kind": "ResourceGroupsQuery",
             "rawQuery": "ResourceGroups($sub)",
             "subscription": "$sub"
           },
-          "queryType": "Azure Resource Groups",
+          "queryType": "Azure Resource Graph",
           "refId": "A",
-          "subscription": "$sub"
+          "subscriptions": [
+            "$sub"
+          ]
         },
         "refresh": 1,
         "regex": "",
@@ -670,7 +3550,7 @@
   },
   "timepicker": {},
   "timezone": "",
-  "title": "Client Overview",
-  "uid": "",
-  "version": 30
+  "title": "Client Overview Copy",
+  "uid": "ch87mc9",
+  "version": 14
 }
