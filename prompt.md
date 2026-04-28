@@ -1,644 +1,182 @@
-Here is a detailed README-style workflow spec you can reuse later as a prompt.
+Overview
+The goal of this design is to provide a simple and scalable way for users to access client-specific dashboards without needing to understand how Grafana works. The idea is for users to already have specific client folders and dashboards set up as soon as they log in to Grafana.
 
-# Grafana Client Dashboard Script Workflow
+We will maintain a single set of shared dashboards that act as the source of truth and build client-specific home pages that act as entry points into those dashboards. 
 
-## Overview
+Shared Dashboards (Source of Truth)
+A shared folder will contain a subfolder called:
 
-This workflow is for managing Grafana client folders and dashboards through scripts.
+Shared/Client-Homepages/<Client-Name>
 
-The system supports five separate actions:
+This folder will contain the main dashboards used across all clients.
 
-1. Create Folder
-2. Send Dashboard
-3. Onboard New Subscription
-4. Delete Dashboard
-5. Delete Folder
+Each of these dashboards includes a Grafana variable named sub. This variable is populated from Azure Monitor by querying available subscriptions.
 
-A top-level run script will act as the entry point. The user chooses which action to run. If the user does not select a valid option, then nothing runs.
+This allows a single dashboard to display metrics for different clients by switching the subscription value.
 
-This design is script-first. Pipelines may be added later, but the current goal is to make the scripts structured, predictable, and easy to maintain.
+Problem Being Solved
+Many new users may not be familiar with Grafana and should not be expected to:
 
----
+navigate folder structures
 
-# Core Concepts
+understand variables
 
-## Dashboard Types
+manually switch subscriptions in dashboard settings (confusing)
 
-There are two dashboard types:
+Save as a copy into specified folder (too many steps)
 
-### Shared Dashboard
+The solution is to provide a simplified client-specific entry point where users can immediately access the correct dashboards based on a specific client.
 
-Shared dashboards are centrally managed dashboards.
-They are reused across clients and are considered stable source dashboards.
+Folder Structure
 
-Rules for shared dashboards:
 
-* The UID must stay the same
-* The script must not replace or remove the UID
-* The script may update the default subscription name or subscription ID in the JSON if needed
-* Shared dashboards are not treated like client-specific copies
+Client Homepages/
+  Client-A/
+    Home Dashboard
+  Client-B/
+    Home Dashboard
+Each client has its own folder and home dashboard.
 
-### Homepage Dashboard
+Client Home Pages (Portal Dashboards)
+Each client will have a dedicated home dashboard that serves as a portal.
 
-Homepage dashboards are client-specific dashboards used as landing pages or portals.
+These home dashboards will:
 
-Rules for homepage dashboards:
+contain links to shared dashboards
 
-* The UID does not matter long-term
-* If a new homepage is submitted, the old one may be deleted or replaced
-* The script should replace or remove the UID so Grafana can assign a new one if appropriate
-* The script should update:
+automatically pass the correct client subscription
 
-  * subscription name
-  * subscription ID
-  * any client-specific metadata such as title and description
+allow users to click and view dashboards without additional setup
 
----
+These dashboards can be assigned as default home pages using Grafana Teams so users land directly on their client portal after login. 
 
-## Folder Structure
+These client homepages will live in a specified client folder. The client folder will be named after the client, and all these folders will live under a folder called Client Homepages. 
 
-The scripts should assume a structure like this:
+Reusable Panel Management
+The client homepages will use a library panel to display links.
 
-* templates/shared/
-* templates/client-dash/
-* dashboards/output/
+Benefits:
 
-Example dashboard templates may include:
+Links are defined in one place
 
-* Client-Overview
-* Client-Performance
-* Client-Home
+Updates automatically propagate to all client homepage links.
 
-The template path used depends on whether the dashboard is:
+Adding or removing dashboards only requires a single change.
 
-* shared
-* homepage/client-specific
+This significantly reduces maintenance effort. This library panel can only be edited by admin users. If users want to add information this will be done a different panel and there will already be a panel to do so. 
 
----
+Variable Strategy
+Each client home dashboard will include a $sub variable with a default value set to that specific client.
 
-## Required Environment / Config Inputs
+This value will not be manually configured in the UI. Instead, it will be set in the dashboard JSON during deployment. Since there are already a list of clients and their corresponding IDs, this process can be automated. The variable can also be hidden so users do not need to interact with it.
 
-Base config values may include:
+Client Shared dashboards will also have resource group variables. They should already be organized into categories. This is done by a $category variable that is essentially are labels for $resourcegroup to filter when querying from Azures Resource Graph. This allows for users to select which category (Prod, Client-Facing, Non-Client Facing, All) and once selected resource group are filtered, and the resource groups are able to be selected. 
 
-* `Grafana_Url`
-* `Token`
-* `Client_Name`
-* `Subscription`
-* `Dashboards_Dir`
-* `Dashboard_Key`
+Grafana UIDS
+UIDs are the primary way Grafana identifies dashboards and folders behind the scenes. Using consistent and recognizable UIDs solves key challenges around linking, organization, and recovery.
 
-Additional flags or inputs should specify:
+How everything connects:
 
-* operation type
-* dashboard type
-* whether deletion is for a folder or dashboard
+Client Homepage Dashboard
 
----
+ contains links to Shared Dashboards (via UID)
 
-# Top-Level Run Script
+uses Library Panel (shared links panel)
 
-## Purpose
+ dashboards live inside Folders (also identified by UID) 
 
-The run script is the main entry point. It should ask the user what they want to do, and then route to the correct script or workflow.
+Why this matters:
 
-## Allowed Actions
+Stable linking
 
-The run script should support these five actions:
+Dashboard links rely on /d/<uid>/...
 
-1. Create Folder
-2. Send Dashboard
-3. Onboard New Subscription
-4. Delete Dashboard
-5. Delete Folder
+If the UID changes, links in the shared library panel break
 
-## Behavior
+Library panel consistency
 
-### Valid selection
+The shared panel is reused across all client homepages
 
-If the user chooses a valid action, the run script should:
+It centrally manages links to shared dashboards
 
-* gather only the inputs needed for that action
-* call the correct script
-* stop after that action completes
+Stable UIDs ensure one update works everywhere without fixing broken links
 
-### Invalid selection
+Folder-level organization
 
-If the user enters:
+Folders also have UIDs used in APIs and provisioning
 
-* nothing
-* an unsupported option
-* an invalid value
+Consistent folder UIDs help maintain structure during automation and recovery
 
-then:
+Recovery and backup
 
-* no script should run
-* the run script should exit cleanly
+Dashboards are restored using JSON definitions
 
-## Design rule
+Matching UIDs allow links, panels, and folder placement to reconnect correctly
 
-The run script should act as a dispatcher only.
-It should not contain all business logic itself.
-Each action should have its own dedicated script and rules.
+Prevents the need to manually rebuild homepage links or relationships
 
----
+Scalability
 
-# Workflow 1: Create Folder
+As more clients and dashboards are added, predictable UIDs make it easier to trace, manage, and automate resources
 
-## Purpose
+In this design, UIDs are not just identifiers. They are the foundation that keeps client homepages, shared dashboards, and the reusable library panel reliably connected.
 
-Create a new client folder in Grafana.
+Link Structure
+Links from the home dashboard to shared dashboards will follow a simple format:
 
-This action only creates the folder.
-It does not send any dashboards.
+/d/<uid>/<dasboard-name>?var-sub=${sub}
 
-## Inputs
+Notes:
 
-Required:
+The UID is the only required identifier
 
-* Grafana URL
-* API token
-* client name
+The dashboard name portion is optional and is used for readability
 
-Optional if needed:
+The var-sub=${sub} parameter ensures the correct client context is passed
 
-* parent folder path
-* folder naming convention
+Automation and API Usage
+A template dashboard JSON will be used for all client home pages.
 
-## Flow
+Existing PowerShell and Python scripts can:
 
-1. Read config and environment variables
-2. Validate required values are present
-3. Resolve the target folder name from the client name
-4. Check whether the folder already exists
-5. If the folder already exists:
+modify the JSON
 
-   * stop
-   * print that no new folder was created
-6. If the folder does not exist:
+set the correct sub value for each client
 
-   * call the Grafana API to create it
-7. Print the result
+deploy dashboards through the Grafana API
 
-   * folder created successfully
-   * or exact failure reason
+Dashboard metadata such as UID and URL can also be retrieved from the Grafana API.
 
-## Rules
+This allows:
 
-* Must not create duplicate folders
-* Must use consistent naming conventions
-* Must not send dashboards as part of this action
+automatic generation of links
 
-## Expected outcome
+easy updates to the shared panel
 
-A client folder exists and is ready to receive dashboards.
+consistent rollout across all clients
 
----
+Deploying these home dashboards only needs to be done once. Any changes done to panels will be done in the UI. 
 
-# Workflow 2: Send Dashboard
+In the case where a Dashboard gets deleted
 
-## Purpose
+Dashboard Recovery and Backup Strategy
+All shared dashboards should be exported as JSON and stored in a repository as the “golden source of truth”.
 
-Send a dashboard into Grafana using a JSON template.
+If a dashboard is accidentally deleted or needs to be restored:
 
-This action is for one dashboard at a time.
+retrieve the dashboard JSON from the repository
 
-## Inputs
+resubmit it to Grafana using the existing scripts (readjust if needed) 
 
-Required:
+obtain the dashboard UID and URL if needed
 
-* Grafana URL
-* API token
-* client name
-* subscription name or ID
-* dashboard key
-* dashboards directory
-* dashboard type
+update any affected links in the shared panel
 
-Dashboard type must be one of:
+This ensures dashboards can be quickly restored with minimal disruption and maintains.
 
-* shared
-* homepage
+Resources
+Variables | Grafana documentation 
 
-## Flow
+Grafana-Categorizing Resource Groups - Tech Ops - Confluence 
 
-1. Read config and environment variables
-2. Validate required values
-3. Validate dashboard type
-4. Determine the correct template path based on dashboard type
-
-   * shared dashboards use the shared template path
-   * homepage dashboards use the client-specific or homepage template path
-5. Resolve the specific template file from the dashboard key
-
-   * example:
-
-     * overview
-     * performance
-     * home
-6. Load the template JSON
-7. Modify the JSON according to dashboard rules
-8. Write the modified JSON to an output file if needed
-9. Send the dashboard to Grafana through the API
-10. Print the result, including dashboard title, UID if relevant, and URL if available
-
-## Rules for Shared Dashboards
-
-If dashboard type is shared:
-
-* keep the existing UID
-* do not remove or replace the UID
-* update only the default subscription name or subscription ID if needed
-* treat the dashboard as a controlled reusable dashboard
-
-## Rules for Homepage Dashboards
-
-If dashboard type is homepage:
-
-* replace or remove the UID
-* set `id` to null if needed for import
-* reset version if needed
-* update client-specific metadata
-
-  * title
-  * description
-* update:
-
-  * subscription name
-  * subscription ID
-* treat the dashboard as a client-specific dashboard
-
-## Expected outcome
-
-A single dashboard is created or updated in Grafana according to its type-specific rules.
-
----
-
-# Workflow 3: Onboard New Subscription
-
-## Purpose
-
-Perform the full initial setup for a new client subscription.
-
-This is a bundled workflow that combines multiple actions.
-
-## Inputs
-
-Required:
-
-* Grafana URL
-* API token
-* client name
-* subscription name or ID
-* dashboards directory
-* required dashboard keys
-
-Optional:
-
-* which dashboards to include during onboarding
-
-## Flow
-
-1. Read config and environment variables
-2. Validate required values
-3. Create the client folder
-4. Confirm folder creation succeeded
-5. Send the required dashboards for the new client
-
-   * typically homepage first
-   * then any required client dashboards
-6. Apply type-specific rules to each dashboard
-7. Print the final result of onboarding
-
-## Rules
-
-* Onboarding is a bundled process
-* It may call the create-folder workflow internally
-* It may call the send-dashboard workflow internally
-* It should stop cleanly if a required step fails
-* It should not continue blindly after a failed folder creation or failed dashboard send
-
-## Expected outcome
-
-A new client subscription is fully set up with:
-
-* a client folder
-* required dashboards deployed
-
----
-
-# Workflow 4: Delete Dashboard
-
-## Purpose
-
-Delete one specific dashboard from Grafana.
-
-This action targets a single dashboard only.
-
-## Inputs
-
-Required:
-
-* Grafana URL
-* API token
-* client name if needed
-* dashboard key or dashboard identifier
-* dashboard type if needed
-
-Optional:
-
-* exact dashboard UID if already known
-
-## Flow
-
-1. Read config and environment variables
-2. Validate required inputs
-3. Resolve the target dashboard
-
-   * by UID if already known
-   * or by dashboard key and client naming convention
-4. Verify that the dashboard exists
-5. Display what will be deleted
-
-   * title
-   * UID
-   * folder if useful
-6. Ask the user for confirmation
-7. Accept confirmation values case-insensitively
-
-   * yes
-   * y
-   * no
-   * n
-8. If input is invalid:
-
-   * keep prompting until valid input is entered
-9. If confirmed:
-
-   * delete the dashboard
-10. If denied:
-
-* cancel the action
-
-11. Print the result
-
-## Rules
-
-* Must never delete without explicit confirmation
-* Must support case-insensitive confirmation input
-* Must loop until valid confirmation input is given
-* Shared dashboards and homepage dashboards may be resolved differently, but the delete action itself targets only one dashboard
-
-## Expected outcome
-
-One dashboard is either:
-
-* deleted after confirmation
-* or left untouched if the user cancels
-
----
-
-# Workflow 5: Delete Folder
-
-## Purpose
-
-Delete an entire client folder safely.
-
-This action should remove the folder and the dashboards inside it.
-
-## Inputs
-
-Required:
-
-* Grafana URL
-* API token
-* client name
-
-Optional:
-
-* folder UID if already known
-
-## Flow
-
-1. Read config and environment variables
-2. Validate required values
-3. Resolve the target folder from the client name
-4. Verify that the folder exists
-5. List dashboards currently inside that folder
-6. Display what will be deleted
-
-   * folder name
-   * number of dashboards
-   * optionally dashboard titles
-7. Ask the user for confirmation
-8. Accept confirmation values case-insensitively
-
-   * yes
-   * y
-   * no
-   * n
-9. If input is invalid:
-
-   * keep prompting until valid input is entered
-10. If confirmed:
-
-* delete all dashboards inside the folder first
-* then delete the folder itself
-
-11. If denied:
-
-* cancel the action
-
-12. Print the result
-
-## Rules
-
-* Must not delete a folder without explicit confirmation
-* Must verify the folder exists before attempting deletion
-* Should delete child dashboards before deleting the folder
-* Must stop cleanly if the folder does not exist
-
-## Expected outcome
-
-The selected client folder and its dashboards are removed only after user confirmation.
-
----
-
-# Action Selection Rules for the Run Script
-
-## Menu options
-
-The run script should expose these exact user-facing actions:
-
-* Create Folder
-* Send Dashboard
-* Onboard New Subscription
-* Delete Dashboard
-* Delete Folder
-
-## Dispatch behavior
-
-### Create Folder
-
-Calls only the folder creation logic
-
-### Send Dashboard
-
-Calls only dashboard submission logic
-
-### Onboard New Subscription
-
-Calls the full onboarding flow
-
-### Delete Dashboard
-
-Calls only single-dashboard deletion logic
-
-### Delete Folder
-
-Calls only folder deletion logic
-
-### No valid choice
-
-If the user does not choose a valid action:
-
-* do not run any script
-* exit cleanly
-
----
-
-# Dashboard Template Handling Rules
-
-## Shared templates
-
-Shared templates live in a shared template path.
-These are used when the dashboard type is shared.
-
-Behavior:
-
-* preserve UID
-* update only allowed fields
-* do not treat as a new client copy
-
-## Homepage templates
-
-Homepage templates live in a homepage or client-dash template path.
-
-Behavior:
-
-* create a client-specific version
-* replace or remove UID
-* update client-specific metadata
-* update subscription values
-
----
-
-# Subscription Variable Rules
-
-When JSON is modified, the `sub` variable should be updated according to dashboard type and purpose.
-
-Typical changes may include:
-
-* current text
-* current value
-* subscription ID
-* hidden state
-* query subscription references
-
-The script should apply these consistently so dashboards open with the intended client context.
-
----
-
-# Safety and Validation Rules
-
-These rules apply across all workflows:
-
-## Validation
-
-Every script should validate:
-
-* required environment variables
-* required user inputs
-* target resource existence before modifying or deleting
-
-## Confirmation
-
-Delete actions must always require confirmation.
-
-## No-op behavior
-
-If the user does not choose a valid action in the run script:
-
-* nothing should run
-
-## Clear output
-
-Every script should print:
-
-* what it is doing
-* what resource it found
-* whether it succeeded or failed
-* why it failed if applicable
-
-## Separation of concerns
-
-Each workflow should be its own script or function.
-The run script should only route actions.
-
----
-
-# Recommended Mental Model
-
-Think of the system like this:
-
-## Create Folder
-
-Prepare a place for client content
-
-## Send Dashboard
-
-Submit one dashboard according to its type rules
-
-## Onboard New Subscription
-
-Run the full setup for a new client
-
-## Delete Dashboard
-
-Remove one dashboard safely
-
-## Delete Folder
-
-Remove an entire client area safely
-
----
-
-# Summary
-
-This system should behave like a controlled script runner for Grafana administration.
-
-The user selects one of five actions:
-
-* Create Folder
-* Send Dashboard
-* Onboard New Subscription
-* Delete Dashboard
-* Delete Folder
-
-Each action has its own workflow and validation rules.
-
-The most important distinction is between dashboard types:
-
-* **Shared dashboards**
-
-  * keep UID
-  * update only allowed subscription-related values
-
-* **Homepage dashboards**
-
-  * replace or remove UID
-  * update subscription values and client-specific metadata
-
-Delete actions must always require confirmation.
-The run script must do nothing if the user does not make a valid choice.
-
-This provides a clear foundation for later script refactoring and eventual pipeline adoption.
+Manage library panels | Grafana documentation 
