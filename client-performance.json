@@ -19,7 +19,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 458,
+  "id": 0,
   "links": [],
   "panels": [
     {
@@ -5953,6 +5953,71 @@
         "refresh": 1,
         "regex": "",
         "type": "query"
+      },
+      {
+        "current": {
+          "text": "Prod",
+          "value": "Prod"
+        },
+        "description": "",
+        "name": "category",
+        "options": [
+          {
+            "selected": false,
+            "text": "All",
+            "value": "All"
+          },
+          {
+            "selected": true,
+            "text": "Prod",
+            "value": "Prod"
+          },
+          {
+            "selected": false,
+            "text": "Client Facing",
+            "value": "Client Facing"
+          },
+          {
+            "selected": false,
+            "text": "Nonclient Facing",
+            "value": "Nonclient Facing"
+          }
+        ],
+        "query": "All,Prod,Client Facing,Nonclient Facing",
+        "type": "custom"
+      },
+      {
+        "current": {
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        },
+        "definition": "",
+        "includeAll": true,
+        "label": "Resource Group(s)",
+        "multi": true,
+        "name": "rg",
+        "options": [],
+        "query": {
+          "azureLogAnalytics": {
+            "query": "",
+            "resources": []
+          },
+          "azureResourceGraph": {
+            "query": "resourcecontainers\r\n| where type == \"microsoft.resources/subscriptions/resourcegroups\" \r\n| extend rg = tolower(name) \r\n| where (\"$category\" == \"All\") or (\"$category\" == \"Prod\" and rg matches regex @\"(^|[-_])(prod|production)([-_]|$)\") \r\n  or (\"$category\" == \"Client Facing\" and rg matches regex @\"(^|[-_])(dev|development|uat|qa|test|tst|stage|staging|prod|production)([-_]|$)\") \r\n  or (\"$category\" == \"Nonclient Facing\" and not(rg matches regex @\"(^|[-_])(dev|development|uat|qa|test|tst|stage|staging|prod|production)([-_]|$)\")) \r\n| project name | order by name asc"
+          },
+          "queryType": "Azure Resource Graph",
+          "refId": "A",
+          "subscriptions": [
+            "$sub"
+          ]
+        },
+        "refresh": 1,
+        "regex": "",
+        "type": "query"
       }
     ]
   },
@@ -5964,5 +6029,5 @@
   "timezone": "browser",
   "title": "Client Performance Metrics Copy",
   "uid": "chw8z26",
-  "version": 1
+  "version": 2
 }
